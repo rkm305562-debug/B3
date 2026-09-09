@@ -1,0 +1,4 @@
+# Declare binary files to prevent Git line ending transformations (CRLF/LF corruption)
+*.jar binary
+*.png binary
+*.keystore binary

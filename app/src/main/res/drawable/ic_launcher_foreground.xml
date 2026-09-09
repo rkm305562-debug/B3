@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- الصورة المصدر (ic_launcher_foreground_photo) تحتوي بالفعل على هامش
+     فيروزي كافٍ محفور داخلها حول المحتوى المرئي (نحو 62% من القماشة)، وهو
+     ما يحمي كل عناصر التصميم من القصّ عند تطبيق قناع النظام على الأيقونة
+     التكيّفية (دائري/مربع بحواف دائرية/قطرة)، والذي يقصّ حتى ~33% من الحواف
+     في أسوأ الحالات. لذلك تُعرض هنا بحجمها الكامل (بلا تصغير إضافي هنا). -->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/ic_launcher_foreground_photo"
+    android:gravity="center" />

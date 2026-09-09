@@ -1,0 +1,32 @@
+# Android Gradle Build Outputs
+*.apk
+*.aab
+*.aar
+*.dex
+*.class
+/build/
+/app/build/
+/.gradle/
+.navigation/
+captures/
+
+# Local configuration files
+local.properties
+.env
+.env.local
+.dev.env.json
+
+# IDE and OS settings
+.idea/
+.project
+.classpath
+.settings/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Keystores & Credentials
+*.jks
+*.keystore
+!debug.keystore
+google-services.json
