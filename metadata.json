@@ -1,6 +1,0 @@
-{
-  "name": "ZainQH Chat",
-  "description": "تطبيق دردشة فاخر كامل ومتقدم باسم ZainQH Chat بلغة Kotlin وتصميم أسود وذهبي ممتاز",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

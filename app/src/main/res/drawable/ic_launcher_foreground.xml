@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- الصورة الآن بحجم ~98% من قماشة الأيقونة التكيّفية (108dp) كي تظهر
-     بحجمها الكامل تقريبًا، معتمدين على أن الصورة المصدر نفسها دائرة محاطة
-     بهامش أبيض ضمن مربع — فهذا الهامش المدمج فيها أصلاً هو ما يحمي الوجه من
-     أي قص عند تطبيق قناع النظام (دائري/مربع بحواف دائرية/قطرة)، وليس تصغير
-     المحتوى داخل القماشة. -->
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/ic_launcher_foreground_photo"
-    android:gravity="center" />
