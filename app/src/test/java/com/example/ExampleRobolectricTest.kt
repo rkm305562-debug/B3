@@ -16,6 +16,9 @@ class ExampleRobolectricTest {
   fun `read string from context`() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val appName = context.getString(R.string.app_name)
-    assertEquals("قروب بنات و شباب", appName)
+    // ملاحظة: بعد إضافة دعم تعدد اللغات، القيمة الافتراضية (values/strings.xml
+    // بلا مؤهل لغة) هي الإنجليزية، وهي ما يحمّله Robolectric هنا افتراضيًا
+    // بلا تحديد qualifiers="ar" صريح — لذلك تُقارَن بالاسم الإنجليزي.
+    assertEquals("Girls & Boys Group", appName)
   }
 }
