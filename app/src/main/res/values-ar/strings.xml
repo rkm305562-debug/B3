@@ -14,11 +14,9 @@
     <string name="auth_login_subtitle">تسجيل الدخول إلى حسابك 🔑</string>
     <string name="auth_username_label">اسم المستخدم</string>
     <string name="auth_password_label">كلمة المرور</string>
-    <string name="auth_age_notice">🔞 يجب أن يكون عمرك 18 عامًا فأكثر لإنشاء حساب واستخدام هذا التطبيق.</string>
     <string name="auth_password_hint">إذا أردت الاحتفاظ بحسابك (الدخول من جهاز آخر أو بعد حذف التطبيق)، أضف كلمة مرور لاحقًا من الإعدادات ⚙️</string>
-    <string name="auth_consent_prefix">بموافقتك على التسجيل وإنشاء الحساب فإنك تقرّ بأنك تجاوزت 18 عامًا، وتوافق على </string>
-    <string name="auth_consent_link">الشروط والأحكام وسياسة الخصوصية</string>
-    <string name="auth_consent_suffix"> كاملةً.</string>
+    <string name="auth_consent_prefix">بموافقتك على التسجيل وإنشاء الحساب فإنك توافق على </string>
+    <string name="auth_consent_link">الشروط</string>
     <string name="auth_register_btn">إنشاء الحساب 👑</string>
     <string name="auth_login_btn">تسجيل الدخول 🔑</string>
     <string name="auth_switch_to_login">لدي حساب بالفعل (تسجيل الدخول)</string>

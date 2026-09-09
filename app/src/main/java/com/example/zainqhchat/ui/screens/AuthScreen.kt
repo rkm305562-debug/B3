@@ -1,5 +1,6 @@
 package com.example.zainqhchat.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -198,6 +200,8 @@ private fun AuthGlassCard(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val passwordHintText = stringResource(com.example.R.string.auth_password_hint)
 
     var isRegisterMode by remember { mutableStateOf(true) }
     var username by remember { mutableStateOf("") }
@@ -207,7 +211,15 @@ private fun AuthGlassCard(
 
     LaunchedEffect(uiState) {
         when (val state = uiState) {
-            is AuthUiState.Authenticated -> onAuthSuccess()
+            is AuthUiState.Authenticated -> {
+                // نُظهر تذكير كلمة المرور كإشعار (Toast) بعد التسجيل الناجح
+                // فقط (وليس بعد تسجيل الدخول)، بدل كتابته كنص دائم في شاشة
+                // التسجيل نفسها.
+                if (isRegisterMode) {
+                    Toast.makeText(context, passwordHintText, Toast.LENGTH_LONG).show()
+                }
+                onAuthSuccess()
+            }
             is AuthUiState.Error -> {
                 snackbarHostState.showSnackbar(state.message)
                 authViewModel.clearError()
@@ -284,27 +296,9 @@ private fun AuthGlassCard(
             }
 
             if (isRegisterMode) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = stringResource(com.example.R.string.auth_age_notice),
-                    color = TextSecondaryMuted,
-                    fontSize = 11.5.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(com.example.R.string.auth_password_hint),
-                    color = TextSecondaryMuted,
-                    fontSize = 11.5.sp,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 val consentPrefix = stringResource(com.example.R.string.auth_consent_prefix)
                 val consentLink = stringResource(com.example.R.string.auth_consent_link)
-                val consentSuffix = stringResource(com.example.R.string.auth_consent_suffix)
                 val termsAnnotated = buildAnnotatedString {
                     append(consentPrefix)
                     pushStringAnnotation(tag = "terms", annotation = "terms")
@@ -318,7 +312,6 @@ private fun AuthGlassCard(
                         append(consentLink)
                     }
                     pop()
-                    append(consentSuffix)
                 }
                 ClickableText(
                     text = termsAnnotated,

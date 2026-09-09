@@ -14,11 +14,9 @@
     <string name="auth_login_subtitle">Sign in to your account 🔑</string>
     <string name="auth_username_label">Username</string>
     <string name="auth_password_label">Password</string>
-    <string name="auth_age_notice">🔞 You must be 18 years or older to create an account and use this app.</string>
     <string name="auth_password_hint">If you want to keep your account (sign in from another device or after reinstalling), add a password later from Settings ⚙️</string>
-    <string name="auth_consent_prefix">By registering and creating an account, you confirm that you are over 18 and agree to the </string>
-    <string name="auth_consent_link">Terms &amp; Conditions and Privacy Policy</string>
-    <string name="auth_consent_suffix"> in full.</string>
+    <string name="auth_consent_prefix">By registering and creating an account, you agree to the </string>
+    <string name="auth_consent_link">Terms</string>
     <string name="auth_register_btn">Create Account 👑</string>
     <string name="auth_login_btn">Sign In 🔑</string>
     <string name="auth_switch_to_login">I already have an account (Sign in)</string>

@@ -51,6 +51,7 @@ import com.example.zainqhchat.ui.screens.ChatDetailScreen
 import com.example.zainqhchat.ui.screens.ChatListScreen
 import com.example.zainqhchat.ui.screens.DashboardScreen
 import com.example.zainqhchat.ui.screens.GuestDashboardScreen
+import com.example.zainqhchat.ui.screens.InAppWebViewScreen
 import com.example.zainqhchat.ui.screens.OnlineUsersScreen
 import com.example.zainqhchat.ui.screens.ProfileScreen
 import com.example.zainqhchat.ui.screens.ConnectionStatusScreen
@@ -249,9 +250,8 @@ fun ZainQHChatNavHost(
         }
     }
 
-    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     val openPublicChatLink: () -> Unit = {
-        uriHandler.openUri("https://cloud-arb.top/t0tt8/")
+        navController.navigate("public_chat_web")
     }
 
     NavHost(
@@ -349,6 +349,16 @@ fun ZainQHChatNavHost(
                     onRequireAuth = { requireAuth { /* مجرد إظهار نافذة التسجيل */ } }
                 )
             }
+        }
+
+        // 3ب. الدردشة العامة الخارجية — تُفتح داخل التطبيق نفسه عبر WebView
+        // بدل متصفح خارجي منفصل.
+        composable("public_chat_web") {
+            InAppWebViewScreen(
+                url = "https://cloud-arb.top/t0tt8/",
+                title = "الدردشة العامة",
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         // 3أ. شاشة الدردشات الكاملة (تفتح من بطاقة "الدردشات")
