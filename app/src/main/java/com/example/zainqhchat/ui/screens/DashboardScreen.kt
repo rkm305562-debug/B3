@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -138,12 +139,12 @@ fun DashboardScreen(
                     enter = fadeIn(tween(350)) + slideInVertically(tween(350)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "الدردشات",
-                        subtitle = "الدردشة العامة والمحادثات الخاصة",
+                        title = stringResource(R.string.dash_chats_title),
+                        subtitle = stringResource(R.string.dash_chats_subtitle_logged),
                         icon = Icons.Default.ChatBubble,
                         iconGradient = listOf(GoldPrimary, GoldDark),
                         statCount = totalUnreadMessages,
-                        statLabel = if (totalUnreadMessages > 0) "رسالة جديدة" else null,
+                        statLabel = if (totalUnreadMessages > 0) stringResource(R.string.dash_new_message) else null,
                         avatars = recentChatAvatars.map { it.avatarUrl to it.title },
                         onClick = onOpenChats,
                         testTag = "dashboard_card_chats"
@@ -157,8 +158,8 @@ fun DashboardScreen(
                     enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "الدردشة العامة 🌐",
-                        subtitle = "انضم إلى غرفة الدردشة العامة الخارجية",
+                        title = stringResource(R.string.dash_public_chat_title),
+                        subtitle = stringResource(R.string.dash_public_chat_subtitle_logged),
                         icon = Icons.Default.Language,
                         iconGradient = listOf(StatusOnlineGreen, Color(0xFF16A34A)),
                         statCount = 0,
@@ -176,12 +177,12 @@ fun DashboardScreen(
                     enter = fadeIn(tween(450)) + slideInVertically(tween(450)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "المتصلون الآن",
-                        subtitle = "اكتشف من هو متصل الآن وتواصل معه",
+                        title = stringResource(R.string.dash_online_title),
+                        subtitle = stringResource(R.string.dash_online_subtitle_logged),
                         icon = Icons.Default.People,
                         iconGradient = listOf(StatusOnlineGreen, Color(0xFF16A34A)),
                         statCount = onlineCount,
-                        statLabel = "متصل الآن",
+                        statLabel = stringResource(R.string.dash_online_now),
                         avatars = onlineNowAvatars.map { it.avatarUrl to it.name },
                         onClick = onOpenOnlineUsers,
                         testTag = "dashboard_card_online"
@@ -195,12 +196,12 @@ fun DashboardScreen(
                     enter = fadeIn(tween(550)) + slideInVertically(tween(550)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "العملات",
-                        subtitle = "رصيدك، المكافآت، والمتجر",
+                        title = stringResource(R.string.dash_currency_title),
+                        subtitle = stringResource(R.string.dash_currency_subtitle_logged),
                         icon = Icons.Default.MonetizationOn,
                         iconGradient = listOf(GoldPrimary, GoldDark),
                         statCount = currentUser.coins.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
-                        statLabel = "عملة",
+                        statLabel = stringResource(R.string.dash_coin_unit),
                         avatars = listOf(currentUser.avatarUrl to currentUser.name),
                         onClick = onOpenCurrency,
                         testTag = "dashboard_card_currency"
@@ -214,8 +215,8 @@ fun DashboardScreen(
                     enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "تواصل مع المدير",
-                        subtitle = "محادثة مباشرة مع إدارة التطبيق",
+                        title = stringResource(R.string.dash_contact_admin_title),
+                        subtitle = stringResource(R.string.dash_contact_admin_subtitle_logged),
                         icon = Icons.Default.SupportAgent,
                         iconGradient = listOf(GoldPrimary, Color(0xFF0EA5E9)),
                         statCount = 0,
@@ -233,12 +234,12 @@ fun DashboardScreen(
                     enter = fadeIn(tween(650)) + slideInVertically(tween(650)) { it / 3 }
                 ) {
                     DashboardCard(
-                        title = "الإعدادات",
-                        subtitle = "ملفك الشخصي، النقاط، والخصوصية",
+                        title = stringResource(R.string.dash_settings_title),
+                        subtitle = stringResource(R.string.dash_settings_subtitle_logged),
                         icon = Icons.Default.Settings,
                         iconGradient = listOf(Color(0xFF64748B), Color(0xFF475569)),
                         statCount = currentUser.points,
-                        statLabel = "نقطة",
+                        statLabel = stringResource(R.string.dash_point_unit),
                         avatars = listOf(currentUser.avatarUrl to currentUser.name),
                         onClick = onOpenSettings,
                         testTag = "dashboard_card_settings"
@@ -280,14 +281,14 @@ private fun DashboardHeader(
                     ) {
                         androidx.compose.foundation.Image(
                             painter = painterResource(id = R.drawable.ic_launcher_photo),
-                            contentDescription = "شعار قروب بنات و شباب",
+                            contentDescription = stringResource(R.string.content_desc_app_logo),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "قروب بنات و شباب",
+                        text = stringResource(R.string.app_name),
                         color = TextPrimaryWhite,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 18.sp
@@ -307,7 +308,7 @@ private fun DashboardHeader(
                             .clickable { onOpenNotifications() }
                             .testTag("notifications_bell_btn")
                     ) {
-                        Icon(Icons.Default.Notifications, contentDescription = "الإشعارات", tint = GoldPrimary)
+                        Icon(Icons.Default.Notifications, contentDescription = stringResource(R.string.dash_notifications_desc), tint = GoldPrimary)
                     }
 
                     Spacer(modifier = Modifier.width(14.dp))
@@ -328,13 +329,13 @@ private fun DashboardHeader(
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "مرحبًا ${currentUser.name} 👋",
+                text = stringResource(R.string.dash_welcome_user, currentUser.name),
                 color = TextPrimaryWhite,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 22.sp
             )
             Text(
-                text = "نتمنى لك محادثات ممتعة.",
+                text = stringResource(R.string.dash_welcome_subtitle),
                 color = TextSecondaryMuted,
                 fontSize = 14.sp
             )

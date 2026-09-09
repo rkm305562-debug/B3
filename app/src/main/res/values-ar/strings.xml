@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">قروب بنات و شباب</string>
+
+    <!-- Shared -->
+    <string name="content_desc_app_logo">شعار قروب بنات و شباب</string>
+
+    <!-- Splash -->
+    <string name="splash_subtitle">مجتمع التواصل والمحادثات المباشرة والشات الصوتي</string>
+    <string name="splash_loading_text">✨ جاري تهيئة التطبيق والتحقق...</string>
+
+    <!-- Auth -->
+    <string name="auth_close_desc">إغلاق</string>
+    <string name="auth_register_subtitle">أنشئ حسابك الآن ✨</string>
+    <string name="auth_login_subtitle">تسجيل الدخول إلى حسابك 🔑</string>
+    <string name="auth_username_label">اسم المستخدم</string>
+    <string name="auth_password_label">كلمة المرور</string>
+    <string name="auth_age_notice">🔞 يجب أن يكون عمرك 18 عامًا فأكثر لإنشاء حساب واستخدام هذا التطبيق.</string>
+    <string name="auth_password_hint">إذا أردت الاحتفاظ بحسابك (الدخول من جهاز آخر أو بعد حذف التطبيق)، أضف كلمة مرور لاحقًا من الإعدادات ⚙️</string>
+    <string name="auth_consent_prefix">بموافقتك على التسجيل وإنشاء الحساب فإنك تقرّ بأنك تجاوزت 18 عامًا، وتوافق على </string>
+    <string name="auth_consent_link">الشروط والأحكام وسياسة الخصوصية</string>
+    <string name="auth_consent_suffix"> كاملةً.</string>
+    <string name="auth_register_btn">إنشاء الحساب 👑</string>
+    <string name="auth_login_btn">تسجيل الدخول 🔑</string>
+    <string name="auth_switch_to_login">لدي حساب بالفعل (تسجيل الدخول)</string>
+    <string name="auth_switch_to_register">إنشاء حساب جديد</string>
+    <string name="auth_toggle_password_desc">تبديل الرؤية</string>
+
+    <!-- Dashboard -->
+    <string name="dash_chats_title">الدردشات</string>
+    <string name="dash_chats_subtitle_logged">الدردشة العامة والمحادثات الخاصة</string>
+    <string name="dash_chats_subtitle_guest">سجّل دخولك للدردشة العامة والمحادثات الخاصة</string>
+    <string name="dash_new_message">رسالة جديدة</string>
+    <string name="dash_public_chat_title">الدردشة العامة 🌐</string>
+    <string name="dash_public_chat_subtitle_logged">انضم إلى غرفة الدردشة العامة الخارجية</string>
+    <string name="dash_public_chat_subtitle_guest">انضم إلى غرفة الدردشة العامة الخارجية — مفتوحة للجميع</string>
+    <string name="dash_online_title">المتصلون الآن</string>
+    <string name="dash_online_subtitle_logged">اكتشف من هو متصل الآن وتواصل معه</string>
+    <string name="dash_online_subtitle_guest">اكتشف من هو متصل الآن (التصفح متاح للجميع)</string>
+    <string name="dash_online_now">متصل الآن</string>
+    <string name="dash_currency_title">العملات</string>
+    <string name="dash_currency_subtitle_logged">رصيدك، المكافآت، والمتجر</string>
+    <string name="dash_currency_subtitle_guest">سجّل دخولك لعرض رصيدك والمتجر</string>
+    <string name="dash_coin_unit">عملة</string>
+    <string name="dash_contact_admin_title">تواصل مع المدير</string>
+    <string name="dash_contact_admin_subtitle_logged">محادثة مباشرة مع إدارة التطبيق</string>
+    <string name="dash_contact_admin_subtitle_guest">سجّل دخولك للتواصل مع إدارة التطبيق</string>
+    <string name="dash_settings_title">الإعدادات</string>
+    <string name="dash_settings_subtitle_logged">ملفك الشخصي، النقاط، والخصوصية</string>
+    <string name="dash_settings_subtitle_guest">سجّل دخولك لعرض ملفك الشخصي وإعداداتك</string>
+    <string name="dash_point_unit">نقطة</string>
+    <string name="dash_notifications_desc">الإشعارات</string>
+    <string name="dash_welcome_user">مرحبًا %1$s 👋</string>
+    <string name="dash_welcome_subtitle">نتمنى لك محادثات ممتعة.</string>
+
+    <!-- Guest dashboard -->
+    <string name="guest_welcome_title">مرحبًا بك زائرًا 👋</string>
+    <string name="guest_welcome_subtitle">تصفّح بحرية، وسجّل حسابك عند أول محادثة أو قسم يتطلب ذلك.</string>
+    <string name="guest_sign_in_btn">تسجيل الدخول</string>
+</resources>

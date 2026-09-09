@@ -40,10 +40,12 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.zainqhchat.ui.theme.GoldChampagne
 import com.example.zainqhchat.ui.theme.GoldDark
 import com.example.zainqhchat.ui.theme.GoldGradientEnd
@@ -107,7 +109,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             Text(
-                text = "قروب بنات و شباب",
+                text = stringResource(R.string.app_name),
                 color = GoldDark,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -118,7 +120,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "مجتمع التواصل والمحادثات المباشرة والشات الصوتي",
+                text = stringResource(R.string.splash_subtitle),
                 color = TextSecondaryMuted,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -132,7 +134,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "✨ جاري تهيئة التطبيق والتحقق...",
+                text = stringResource(R.string.splash_loading_text),
                 color = GoldPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -201,7 +203,7 @@ private fun LoadingRingWithIcon() {
         ) {
             Icon(
                 imageVector = Icons.Filled.ChatBubble,
-                contentDescription = "قروب بنات و شباب",
+                contentDescription = stringResource(R.string.content_desc_app_logo),
                 tint = GoldPrimary,
                 modifier = Modifier.size(46.dp)
             )

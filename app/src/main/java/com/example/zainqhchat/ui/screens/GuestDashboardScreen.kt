@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,8 +76,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "الدردشات",
-                    subtitle = "سجّل دخولك للدردشة العامة والمحادثات الخاصة",
+                    title = stringResource(R.string.dash_chats_title),
+                    subtitle = stringResource(R.string.dash_chats_subtitle_guest),
                     icon = Icons.Default.ChatBubble,
                     iconGradient = listOf(GoldPrimary, GoldDark),
                     statCount = 0,
@@ -89,8 +90,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "الدردشة العامة 🌐",
-                    subtitle = "انضم إلى غرفة الدردشة العامة الخارجية — مفتوحة للجميع",
+                    title = stringResource(R.string.dash_public_chat_title),
+                    subtitle = stringResource(R.string.dash_public_chat_subtitle_guest),
                     icon = Icons.Default.Language,
                     iconGradient = listOf(StatusOnlineGreen, Color(0xFF16A34A)),
                     statCount = 0,
@@ -103,8 +104,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "المتصلون الآن",
-                    subtitle = "اكتشف من هو متصل الآن (التصفح متاح للجميع)",
+                    title = stringResource(R.string.dash_online_title),
+                    subtitle = stringResource(R.string.dash_online_subtitle_guest),
                     icon = Icons.Default.People,
                     iconGradient = listOf(StatusOnlineGreen, Color(0xFF16A34A)),
                     statCount = 0,
@@ -117,8 +118,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "العملات",
-                    subtitle = "سجّل دخولك لعرض رصيدك والمتجر",
+                    title = stringResource(R.string.dash_currency_title),
+                    subtitle = stringResource(R.string.dash_currency_subtitle_guest),
                     icon = Icons.Default.MonetizationOn,
                     iconGradient = listOf(GoldPrimary, GoldDark),
                     statCount = 0,
@@ -131,8 +132,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "تواصل مع المدير",
-                    subtitle = "سجّل دخولك للتواصل مع إدارة التطبيق",
+                    title = stringResource(R.string.dash_contact_admin_title),
+                    subtitle = stringResource(R.string.dash_contact_admin_subtitle_guest),
                     icon = Icons.Default.SupportAgent,
                     iconGradient = listOf(GoldPrimary, Color(0xFF0EA5E9)),
                     statCount = 0,
@@ -145,8 +146,8 @@ fun GuestDashboardScreen(
 
             item {
                 DashboardCard(
-                    title = "الإعدادات",
-                    subtitle = "سجّل دخولك لعرض ملفك الشخصي وإعداداتك",
+                    title = stringResource(R.string.dash_settings_title),
+                    subtitle = stringResource(R.string.dash_settings_subtitle_guest),
                     icon = Icons.Default.Settings,
                     iconGradient = listOf(Color(0xFF64748B), Color(0xFF475569)),
                     statCount = 0,
@@ -186,14 +187,14 @@ private fun GuestHeader(onSignInClick: () -> Unit) {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_launcher_photo),
-                            contentDescription = "شعار قروب بنات و شباب",
+                            contentDescription = stringResource(R.string.content_desc_app_logo),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "قروب بنات و شباب",
+                        text = stringResource(R.string.app_name),
                         color = TextPrimaryWhite,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 18.sp
@@ -213,7 +214,7 @@ private fun GuestHeader(onSignInClick: () -> Unit) {
                     ) {
                         Icon(Icons.Default.Login, contentDescription = null, tint = LuxuryBlackBg, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("تسجيل الدخول", color = LuxuryBlackBg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(stringResource(R.string.guest_sign_in_btn), color = LuxuryBlackBg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
             }
@@ -221,13 +222,13 @@ private fun GuestHeader(onSignInClick: () -> Unit) {
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "مرحبًا بك زائرًا 👋",
+                text = stringResource(R.string.guest_welcome_title),
                 color = TextPrimaryWhite,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 22.sp
             )
             Text(
-                text = "تصفّح بحرية، وسجّل حسابك عند أول محادثة أو قسم يتطلب ذلك.",
+                text = stringResource(R.string.guest_welcome_subtitle),
                 color = TextSecondaryMuted,
                 fontSize = 14.sp
             )

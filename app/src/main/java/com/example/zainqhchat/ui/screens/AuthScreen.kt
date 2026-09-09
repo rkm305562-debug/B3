@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -228,14 +229,14 @@ private fun AuthGlassCard(
             if (onDismiss != null) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     IconButton(onClick = onDismiss, modifier = Modifier.testTag("auth_popup_close_btn")) {
-                        Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = TextSecondaryMuted)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(com.example.R.string.auth_close_desc), tint = TextSecondaryMuted)
                     }
                 }
             }
 
             Image(
                 painter = painterResource(id = com.example.R.drawable.app_logo),
-                contentDescription = "شعار قروب بنات و شباب",
+                contentDescription = stringResource(com.example.R.string.content_desc_app_logo),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .size(96.dp)
@@ -246,7 +247,7 @@ private fun AuthGlassCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "قروب بنات و شباب",
+                text = stringResource(com.example.R.string.app_name),
                 color = GoldPrimary,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -254,7 +255,7 @@ private fun AuthGlassCard(
             )
 
             Text(
-                text = if (isRegisterMode) "أنشئ حسابك الآن ✨" else "تسجيل الدخول إلى حسابك 🔑",
+                text = stringResource(if (isRegisterMode) com.example.R.string.auth_register_subtitle else com.example.R.string.auth_login_subtitle),
                 color = TextSecondaryMuted,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 4.dp, bottom = 22.dp)
@@ -263,7 +264,7 @@ private fun AuthGlassCard(
             LuxuryTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = "اسم المستخدم",
+                label = stringResource(com.example.R.string.auth_username_label),
                 leadingIcon = Icons.Default.Person,
                 testTag = "username_input"
             )
@@ -273,7 +274,7 @@ private fun AuthGlassCard(
                 LuxuryTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "كلمة المرور",
+                    label = stringResource(com.example.R.string.auth_password_label),
                     leadingIcon = Icons.Default.Lock,
                     isPassword = true,
                     passwordVisible = passwordVisible,
@@ -285,7 +286,7 @@ private fun AuthGlassCard(
             if (isRegisterMode) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "🔞 يجب أن يكون عمرك 18 عامًا فأكثر لإنشاء حساب واستخدام هذا التطبيق.",
+                    text = stringResource(com.example.R.string.auth_age_notice),
                     color = TextSecondaryMuted,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -294,16 +295,18 @@ private fun AuthGlassCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "إذا أردت الاحتفاظ بحسابك (الدخول من جهاز آخر أو بعد حذف " +
-                        "التطبيق)، أضف كلمة مرور لاحقًا من الإعدادات ⚙️",
+                    text = stringResource(com.example.R.string.auth_password_hint),
                     color = TextSecondaryMuted,
                     fontSize = 11.5.sp,
                     modifier = Modifier.align(Alignment.Start)
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
+                val consentPrefix = stringResource(com.example.R.string.auth_consent_prefix)
+                val consentLink = stringResource(com.example.R.string.auth_consent_link)
+                val consentSuffix = stringResource(com.example.R.string.auth_consent_suffix)
                 val termsAnnotated = buildAnnotatedString {
-                    append("بموافقتك على التسجيل وإنشاء الحساب فإنك تقرّ بأنك تجاوزت 18 عامًا، وتوافق على ")
+                    append(consentPrefix)
                     pushStringAnnotation(tag = "terms", annotation = "terms")
                     withStyle(
                         style = SpanStyle(
@@ -312,10 +315,10 @@ private fun AuthGlassCard(
                             textDecoration = TextDecoration.Underline
                         )
                     ) {
-                        append("الشروط والأحكام وسياسة الخصوصية")
+                        append(consentLink)
                     }
                     pop()
-                    append(" كاملةً.")
+                    append(consentSuffix)
                 }
                 ClickableText(
                     text = termsAnnotated,
@@ -338,7 +341,7 @@ private fun AuthGlassCard(
                 CircularProgressIndicator(color = GoldPrimary)
             } else {
                 GoldButton(
-                    text = if (isRegisterMode) "إنشاء الحساب 👑" else "تسجيل الدخول 🔑",
+                    text = stringResource(if (isRegisterMode) com.example.R.string.auth_register_btn else com.example.R.string.auth_login_btn),
                     onClick = {
                         if (isRegisterMode) {
                             authViewModel.register(username = username)
@@ -352,7 +355,7 @@ private fun AuthGlassCard(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 GoldOutlinedButton(
-                    text = if (isRegisterMode) "لدي حساب بالفعل (تسجيل الدخول)" else "إنشاء حساب جديد",
+                    text = stringResource(if (isRegisterMode) com.example.R.string.auth_switch_to_login else com.example.R.string.auth_switch_to_register),
                     onClick = { isRegisterMode = !isRegisterMode },
                     testTag = "toggle_auth_mode_btn"
                 )
@@ -392,7 +395,7 @@ fun LuxuryTextField(
                 IconButton(onClick = onTogglePasswordVisibility) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = "تبديل الرؤية",
+                        contentDescription = stringResource(com.example.R.string.auth_toggle_password_desc),
                         tint = TextSecondaryMuted
                     )
                 }

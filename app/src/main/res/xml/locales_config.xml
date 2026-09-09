@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- يخبر أندرويد 13+ بلغات التطبيق المدعومة، فتظهر في إعدادات النظام
+     (لغة التطبيق) ويستطيع المستخدم اختيارها يدويًا إن أراد تجاوز لغة
+     الجهاز. الاختيار التلقائي (لغة الجهاز) يعمل بلا هذا الملف أساسًا عبر
+     مؤهلات الموارد (values / values-ar)، وهذا الملف تحسين إضافي فقط. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="ar" />
+</locale-config>

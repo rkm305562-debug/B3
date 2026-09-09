@@ -1,3 +1,59 @@
 <resources>
-    <string name="app_name">قروب بنات و شباب</string>
+    <string name="app_name">Girls &amp; Boys Group</string>
+
+    <!-- Shared -->
+    <string name="content_desc_app_logo">Girls &amp; Boys Group logo</string>
+
+    <!-- Splash -->
+    <string name="splash_subtitle">A community for connecting, live chats, and voice chat</string>
+    <string name="splash_loading_text">✨ Setting up the app and verifying…</string>
+
+    <!-- Auth -->
+    <string name="auth_close_desc">Close</string>
+    <string name="auth_register_subtitle">Create your account now ✨</string>
+    <string name="auth_login_subtitle">Sign in to your account 🔑</string>
+    <string name="auth_username_label">Username</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_age_notice">🔞 You must be 18 years or older to create an account and use this app.</string>
+    <string name="auth_password_hint">If you want to keep your account (sign in from another device or after reinstalling), add a password later from Settings ⚙️</string>
+    <string name="auth_consent_prefix">By registering and creating an account, you confirm that you are over 18 and agree to the </string>
+    <string name="auth_consent_link">Terms &amp; Conditions and Privacy Policy</string>
+    <string name="auth_consent_suffix"> in full.</string>
+    <string name="auth_register_btn">Create Account 👑</string>
+    <string name="auth_login_btn">Sign In 🔑</string>
+    <string name="auth_switch_to_login">I already have an account (Sign in)</string>
+    <string name="auth_switch_to_register">Create a new account</string>
+    <string name="auth_toggle_password_desc">Toggle visibility</string>
+
+    <!-- Dashboard -->
+    <string name="dash_chats_title">Chats</string>
+    <string name="dash_chats_subtitle_logged">Public chat and private conversations</string>
+    <string name="dash_chats_subtitle_guest">Sign in for the public chat and private conversations</string>
+    <string name="dash_new_message">new message</string>
+    <string name="dash_public_chat_title">Public Chat 🌐</string>
+    <string name="dash_public_chat_subtitle_logged">Join the external public chat room</string>
+    <string name="dash_public_chat_subtitle_guest">Join the external public chat room — open to everyone</string>
+    <string name="dash_online_title">Online Now</string>
+    <string name="dash_online_subtitle_logged">Discover who\'s online and connect with them</string>
+    <string name="dash_online_subtitle_guest">Discover who\'s online (browsing is open to everyone)</string>
+    <string name="dash_online_now">online now</string>
+    <string name="dash_currency_title">Coins</string>
+    <string name="dash_currency_subtitle_logged">Your balance, rewards, and the store</string>
+    <string name="dash_currency_subtitle_guest">Sign in to view your balance and the store</string>
+    <string name="dash_coin_unit">coins</string>
+    <string name="dash_contact_admin_title">Contact Admin</string>
+    <string name="dash_contact_admin_subtitle_logged">Chat directly with the app admins</string>
+    <string name="dash_contact_admin_subtitle_guest">Sign in to contact the app admins</string>
+    <string name="dash_settings_title">Settings</string>
+    <string name="dash_settings_subtitle_logged">Your profile, points, and privacy</string>
+    <string name="dash_settings_subtitle_guest">Sign in to view your profile and settings</string>
+    <string name="dash_point_unit">points</string>
+    <string name="dash_notifications_desc">Notifications</string>
+    <string name="dash_welcome_user">Hi %1$s 👋</string>
+    <string name="dash_welcome_subtitle">We wish you enjoyable conversations.</string>
+
+    <!-- Guest dashboard -->
+    <string name="guest_welcome_title">Welcome, guest 👋</string>
+    <string name="guest_welcome_subtitle">Browse freely, and sign up when you start a chat or open a section that needs it.</string>
+    <string name="guest_sign_in_btn">Sign In</string>
 </resources>
