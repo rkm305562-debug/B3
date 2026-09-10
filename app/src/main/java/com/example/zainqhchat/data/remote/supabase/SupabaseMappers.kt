@@ -202,6 +202,11 @@ internal object SupabaseMappers {
         selectedCarId = json.optStringOrNull("selected_car_id")
     )
 
+    // trim() هنا يحمي من أي مسافات/أسطر جديدة زائدة قد تُدرَج بالخطأ ضمن
+    // القيمة من طرف عميل آخر غير هذا التطبيق (مثل عميل ويب HTML يتشارك
+    // نفس قاعدة البيانات) — وهي مسافات لا تمنع المتصفح من عرض الصورة عادة
+    // (يتسامح معها HTML)، لكنها قد تُفسد الرابط تمامًا عند تحميله مباشرة
+    // عبر مكتبة صور أندرويد (Coil) التي تتطلب رابطًا نظيفًا بلا حشو.
     fun JSONObject.optStringOrNull(key: String): String? =
-        if (isNull(key) || !has(key)) null else getString(key)
+        if (isNull(key) || !has(key)) null else getString(key).trim().ifBlank { null }
 }

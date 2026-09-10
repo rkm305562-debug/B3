@@ -2,6 +2,7 @@ package com.example.zainqhchat.data.remote.supabase
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.provider.Settings
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -55,6 +56,39 @@ class SupabaseAuthServiceImpl(context: Context) : SupabaseAuthService {
 
     private val authBaseUrl get() = "${SupabaseConfig.getSupabaseUrl()}/auth/v1"
 
+    /**
+     * معرّف الجهاز (ANDROID_ID) — يبقى ثابتًا لنفس الجهاز طالما لم يُعَد
+     * ضبطه من المصنع، حتى بعد حذف هذا التطبيق وإعادة تثبيته (بخلاف بيانات
+     * SharedPreferences/Room المحلية التي تُمسح تمامًا عند الحذف). يُستخدم
+     * فقط لمنع جهاز محظور دائمًا من التسجيل بحساب جديد — انظر
+     * supabase/migrations/007_permanent_ban_deletes_and_blocks_device.sql.
+     */
+    private fun getDeviceId(): String =
+        Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
+            ?: "unknown"
+
+    /**
+     * يتحقق من القائمة السوداء (banned_devices) قبل محاولة التسجيل فعليًا،
+     * كي تظهر رسالة واضحة فورًا بدل خطأ عام غامض من Supabase Auth. يُستدعى
+     * بمفتاح anon (لا توجد جلسة بعد وقت التسجيل).
+     */
+    private suspend fun isDeviceBanned(deviceId: String): Boolean {
+        return try {
+            val body = JSONObject().put("p_device_id", deviceId)
+            val request = Request.Builder()
+                .url("${SupabaseConfig.getSupabaseUrl()}/rest/v1/rpc/is_device_banned")
+                .headers(SupabaseHttp.baseHeaders(null).build())
+                .post(SupabaseHttp.jsonBody(body))
+                .build()
+            SupabaseHttp.execute(request).trim().toBooleanStrictOrNull() ?: false
+        } catch (e: Exception) {
+            // فشل الفحص نفسه (مثلاً لا يوجد إنترنت) يجب ألا يمنع مستخدمًا
+            // شرعيًا من التسجيل — الحماية الحقيقية على مستوى القاعدة
+            // (المُشغّل reject_banned_device) تبقى فعّالة بأي حال.
+            false
+        }
+    }
+
     override suspend fun signUp(
         username: String,
         password: String,
@@ -62,11 +96,18 @@ class SupabaseAuthServiceImpl(context: Context) : SupabaseAuthService {
         age: Int
     ): Result<SupabaseAuthSession> {
         val email = usernameToInternalEmail(username)
+        val deviceId = getDeviceId()
+        if (isDeviceBanned(deviceId)) {
+            return Result.failure(
+                IllegalStateException("تم حظر هذا الجهاز نهائيًا من استخدام هذا التطبيق.")
+            )
+        }
         return try {
             val metadata = JSONObject()
                 .put("username", username)
                 .put("name", name)
                 .put("age", age)
+                .put("device_id", deviceId)
 
             val body = JSONObject()
                 .put("email", email)
@@ -239,6 +280,9 @@ class SupabaseAuthServiceImpl(context: Context) : SupabaseAuthService {
     private fun mapSignUpError(e: SupabaseApiException): Exception {
         val msg = e.message.orEmpty()
         return when {
+            msg.contains("device_banned", true) ->
+                IllegalStateException("تم حظر هذا الجهاز نهائيًا من استخدام هذا التطبيق.")
+
             e.statusCode == 422 || e.errorCode == "user_already_exists" ->
                 IllegalStateException("اسم المستخدم مستخدم بالفعل")
 

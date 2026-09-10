@@ -247,7 +247,7 @@ private fun AuthGlassCard(
             }
 
             Image(
-                painter = painterResource(id = com.example.R.drawable.app_logo),
+                painter = painterResource(id = com.example.R.drawable.ic_launcher_photo),
                 contentDescription = stringResource(com.example.R.string.content_desc_app_logo),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier

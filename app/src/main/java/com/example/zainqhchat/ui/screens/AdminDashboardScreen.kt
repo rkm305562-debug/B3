@@ -242,6 +242,7 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
     var avatarRemovalTarget by remember { mutableStateOf<User?>(null) }
     var tempBanTarget by remember { mutableStateOf<User?>(null) }
     var deleteUserTarget by remember { mutableStateOf<User?>(null) }
+    var banUserTarget by remember { mutableStateOf<User?>(null) }
     var currencyTarget by remember { mutableStateOf<User?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -297,7 +298,14 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             TextButton(onClick = {
-                                adminViewModel.setBanStatus(user.id, !user.isBanned, null)
+                                if (user.isBanned) {
+                                    // فكّ الحظر إجراء غير مدمّر — يبقى فوريًا بلا تأكيد.
+                                    adminViewModel.setBanStatus(user.id, false, null)
+                                } else {
+                                    // الحظر أصبح يحذف الحساب نهائيًا ويمنع الجهاز من
+                                    // التسجيل مجددًا، لذا يتطلب تأكيدًا صريحًا الآن.
+                                    banUserTarget = user
+                                }
                             }) {
                                 Icon(
                                     if (user.isBanned) Icons.Default.CheckCircle else Icons.Default.Block,
@@ -497,6 +505,35 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
             },
             dismissButton = {
                 TextButton(onClick = { deleteUserTarget = null }) { Text("إلغاء", color = TextSecondaryMuted) }
+            }
+        )
+    }
+
+    val banTarget = banUserTarget
+    if (banTarget != null) {
+        AlertDialog(
+            onDismissRequest = { banUserTarget = null },
+            containerColor = LuxurySurfaceDark,
+            title = { Text("حظر ${banTarget.name} نهائيًا؟", color = StatusErrorRed, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "سيُحذف الحساب وكل بياناته نهائيًا فور الحظر (تمامًا كالحذف الكامل)، " +
+                        "كما لن يستطيع هذا الشخص إنشاء حساب جديد من نفس الجهاز مطلقًا حتى " +
+                        "لو حذف التطبيق وأعاد تثبيته. لا يمكن التراجع عن هذا الإجراء.",
+                    color = TextSecondaryMuted,
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    adminViewModel.setBanStatus(banTarget.id, true, null)
+                    banUserTarget = null
+                }) {
+                    Text("حظر وحذف نهائيًا", color = StatusErrorRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { banUserTarget = null }) { Text("إلغاء", color = TextSecondaryMuted) }
             }
         )
     }

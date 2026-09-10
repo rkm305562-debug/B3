@@ -147,7 +147,8 @@ fun DashboardScreen(
                         statLabel = if (totalUnreadMessages > 0) stringResource(R.string.dash_new_message) else null,
                         avatars = recentChatAvatars.map { it.avatarUrl to it.title },
                         onClick = onOpenChats,
-                        testTag = "dashboard_card_chats"
+                        testTag = "dashboard_card_chats",
+                        badgeCount = totalUnreadMessages
                     )
                 }
             }
@@ -353,7 +354,8 @@ internal fun DashboardCard(
     statLabel: String?,
     avatars: List<Pair<String?, String>>,
     onClick: () -> Unit,
-    testTag: String
+    testTag: String,
+    badgeCount: Int = 0
 ) {
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -382,14 +384,29 @@ internal fun DashboardCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // أيقونة دائرية بتدرّج لوني يعطي إحساسًا بالعمق (شبه ثلاثي الأبعاد)
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(iconGradient)),
-                contentAlignment = Alignment.Center
+            // + شارة عدد صغيرة أعلى الزاوية (بنفس أسلوب شارة جرس الإشعارات)
+            // عند وجود عدد غير مقروء.
+            BadgedBox(
+                badge = {
+                    if (badgeCount > 0) {
+                        Badge(containerColor = GoldPrimary, contentColor = Color.White) {
+                            Text(
+                                text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp))
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(iconGradient)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp))
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))

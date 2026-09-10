@@ -179,7 +179,15 @@ fun ChatBubble(
                         )
                     }
 
-                    if (message.text.isNotEmpty()) {
+                    // نص الرسالة: لا يُعرض إن كان مطابقًا فعليًا لرابط الصورة
+                    // نفسها (بعض المصادر الأخرى غير تطبيق أندرويد — مثل عميل
+                    // الويب HTML — تضع رابط الصورة الخام في حقل النص نفسه
+                    // بدل تركه فارغًا)، فتظهر الصورة فقط دون تكرار الرابط
+                    // كنص أسفلها.
+                    val isTextJustTheImageUrl = !message.imageUrl.isNull_or_Blank() &&
+                        message.text.trim().equals(message.imageUrl?.trim(), ignoreCase = true)
+
+                    if (message.text.isNotEmpty() && !isTextJustTheImageUrl) {
                         Text(
                             text = message.text,
                             color = if (isFromCurrentUser) LuxuryBlackBg else TextPrimaryWhite,
