@@ -31,4 +31,7 @@ interface UserRepository {
 
     /** يجلب حساب المدير — لفتح محادثة "تواصل مع المدير" من أي مكان في التطبيق. */
     suspend fun fetchAdminUser(): User?
+
+    /** حالة كل أقسام التطبيق (مفعّل/مغلق مؤقتًا) — متاحة للزوّار أيضًا. */
+    suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag>
 }

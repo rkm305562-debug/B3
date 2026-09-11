@@ -202,6 +202,12 @@ internal object SupabaseMappers {
         selectedCarId = json.optStringOrNull("selected_car_id")
     )
 
+    fun featureFlagFromJson(json: JSONObject) = com.example.zainqhchat.domain.model.FeatureFlag(
+        sectionKey = json.optString("section_key"),
+        isEnabled = json.optBoolean("is_enabled", true),
+        disabledReason = json.optStringOrNull("disabled_reason")
+    )
+
     // trim() هنا يحمي من أي مسافات/أسطر جديدة زائدة قد تُدرَج بالخطأ ضمن
     // القيمة من طرف عميل آخر غير هذا التطبيق (مثل عميل ويب HTML يتشارك
     // نفس قاعدة البيانات) — وهي مسافات لا تمنع المتصفح من عرض الصورة عادة

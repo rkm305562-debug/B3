@@ -130,6 +130,30 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
+    private val _featureFlags = MutableStateFlow<Map<String, com.example.zainqhchat.domain.model.FeatureFlag>>(emptyMap())
+    /** حالة كل أقسام التطبيق — خريطة مفتاحها section_key. القسم يُعتبر
+     *  مفعّلاً افتراضيًا إن لم يصل أي بيانات بعد (فشل شبكة مثلاً)، حتى لا
+     *  يُحرَم المستخدمون من التطبيق كاملاً بسبب عطل مؤقت في هذا الفحص وحده. */
+    val featureFlags: StateFlow<Map<String, com.example.zainqhchat.domain.model.FeatureFlag>> = _featureFlags.asStateFlow()
+
+    fun loadFeatureFlags() {
+        viewModelScope.launch {
+            try {
+                _featureFlags.value = userRepository.fetchFeatureFlags().associateBy { it.sectionKey }
+            } catch (e: Exception) {
+                // تجاهل بصمت — الافتراض الآمن (مفعّل) يبقى ساريًا تلقائيًا.
+            }
+        }
+    }
+
+    /** true إن كان القسم مغلقًا صراحةً؛ false افتراضيًا (بما فيها حالة عدم
+     *  وصول أي بيانات بعد) — حتى لا نمنع مستخدمًا عن طريق الخطأ. */
+    fun isSectionDisabled(sectionKey: String): Boolean =
+        _featureFlags.value[sectionKey]?.isEnabled == false
+
+    fun disabledReasonFor(sectionKey: String): String? =
+        _featureFlags.value[sectionKey]?.disabledReason
+
     class Factory(private val userRepository: UserRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

@@ -38,6 +38,30 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
         _statusMessage.value = null
     }
 
+    private val _featureFlags = MutableStateFlow<List<com.example.zainqhchat.domain.model.FeatureFlag>>(emptyList())
+    val featureFlags: StateFlow<List<com.example.zainqhchat.domain.model.FeatureFlag>> = _featureFlags
+
+    fun loadFeatureFlags() {
+        viewModelScope.launch {
+            try {
+                _featureFlags.value = adminRepository.fetchFeatureFlags()
+            } catch (e: Exception) {
+                _statusMessage.value = "تعذّر تحميل حالة الأقسام"
+            }
+        }
+    }
+
+    fun setFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?) {
+        viewModelScope.launch {
+            adminRepository.setFeatureFlag(sectionKey, enabled, reason)
+                .onSuccess {
+                    _statusMessage.value = if (enabled) "تم تفعيل القسم" else "تم إغلاق القسم مؤقتًا"
+                    loadFeatureFlags()
+                }
+                .onFailure { _statusMessage.value = it.message ?: "فشلت العملية" }
+        }
+    }
+
     fun searchUsers(query: String?) {
         viewModelScope.launch {
             _isLoading.value = true

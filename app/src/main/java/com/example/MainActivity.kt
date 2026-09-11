@@ -76,6 +76,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // حماية من التقاط الشاشة: يمنع لقطات الشاشة وتسجيل الشاشة لكامل
+        // التطبيق (بما فيها الرسائل الخاصة والمحادثات)، ويمنع أيضًا ظهور
+        // معاينة للتطبيق في قائمة "التطبيقات الأخيرة" (Recents) في أندرويد —
+        // حماية قياسية لتطبيقات الدردشة الخاصة.
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_SECURE,
+            android.view.WindowManager.LayoutParams.FLAG_SECURE
+        )
+
         // ملاحظة: تمت إزالة Google Mobile Ads SDK بالكامل من التطبيق — لا
         // توجد أي إعلانات (بانر/بينية/مكافأة) في أي مكان الآن.
 
@@ -250,8 +259,23 @@ fun ZainQHChatNavHost(
         }
     }
 
+    // إغلاق الأقسام مؤقتًا (من طرف المدير) — تُحمَّل مرة واحدة عند بدء
+    // التطبيق (للزائر والمسجَّل على حدٍ سواء)، وتُفحَص قبل فتح أي قسم.
+    LaunchedEffect(Unit) { userViewModel.loadFeatureFlags() }
+    var closedSectionDialog by remember { mutableStateOf<Pair<String, String?>?>(null) }
+
+    fun withSectionCheck(sectionKey: String, sectionLabel: String, action: () -> Unit) {
+        if (userViewModel.isSectionDisabled(sectionKey)) {
+            closedSectionDialog = sectionLabel to userViewModel.disabledReasonFor(sectionKey)
+        } else {
+            action()
+        }
+    }
+
     val openPublicChatLink: () -> Unit = {
-        navController.navigate("public_chat_web")
+        withSectionCheck("public_chat_link", "الدردشة العامة") {
+            navController.navigate("public_chat_web")
+        }
     }
 
     NavHost(
@@ -273,7 +297,11 @@ fun ZainQHChatNavHost(
         // 1. شاشة البداية (Splash Screen) — تُسبَق بشاشة اتصال تفاعلية إن
         // كان الإنترنت ضعيفًا أو منقطعًا عند إقلاع التطبيق.
         composable("splash") {
-            if (connectionState != ConnectionState.CONNECTED) {
+            // لا تُعرض شاشة الاتصال إلا عند انقطاع الإنترنت فعليًا وبالكامل
+            // (DISCONNECTED) — حالة "ضعيف" (WEAK) كانت تظهر أحيانًا بالخطأ
+            // حتى مع إنترنت سليم (تأخر بسيط في تحقق النظام من الشبكة عند
+            // الإقلاع)، فتوقّفنا عن حجب الشاشة بسببها.
+            if (connectionState == ConnectionState.DISCONNECTED) {
                 ConnectionStatusScreen(
                     state = connectionState,
                     onRetryNow = { /* NetworkMonitor يُحدَّث تلقائيًا عبر الـ callback */ },
@@ -325,18 +353,20 @@ fun ZainQHChatNavHost(
                     chatViewModel = chatViewModel,
                     userViewModel = userViewModel,
                     notificationViewModel = notificationViewModel,
-                    onOpenChats = { requireAuth { navController.navigate("chat_list") } },
+                    onOpenChats = { requireAuth { withSectionCheck("chats", "الدردشات") { navController.navigate("chat_list") } } },
                     onOpenPublicChatLink = openPublicChatLink,
-                    onOpenOnlineUsers = { navController.navigate("online_users") },
-                    onOpenSettings = { requireAuth { navController.navigate("settings") } },
+                    onOpenOnlineUsers = { withSectionCheck("online_users", "المتصلون الآن") { navController.navigate("online_users") } },
+                    onOpenSettings = { requireAuth { withSectionCheck("settings", "الإعدادات") { navController.navigate("settings") } } },
                     onOpenProfile = { userId -> requireAuth { navController.navigate("profile/$userId") } },
                     onOpenNotifications = { requireAuth { navController.navigate("notifications") } },
-                    onOpenCurrency = { requireAuth { navController.navigate("currency_home") } },
+                    onOpenCurrency = { requireAuth { withSectionCheck("currency", "العملات") { navController.navigate("currency_home") } } },
                     onContactAdmin = {
                         requireAuth {
-                            userViewModel.contactAdmin { admin ->
-                                if (admin != null) {
-                                    navController.navigate("chat/${admin.id}/${admin.name}")
+                            withSectionCheck("contact_admin", "تواصل مع المدير") {
+                                userViewModel.contactAdmin { admin ->
+                                    if (admin != null) {
+                                        navController.navigate("chat/${admin.id}/${admin.name}")
+                                    }
                                 }
                             }
                         }
@@ -344,7 +374,7 @@ fun ZainQHChatNavHost(
                 )
             } else {
                 GuestDashboardScreen(
-                    onOpenOnlineUsers = { navController.navigate("online_users") },
+                    onOpenOnlineUsers = { withSectionCheck("online_users", "المتصلون الآن") { navController.navigate("online_users") } },
                     onOpenPublicChatLink = openPublicChatLink,
                     onRequireAuth = { requireAuth { /* مجرد إظهار نافذة التسجيل */ } }
                 )
@@ -601,6 +631,28 @@ fun ZainQHChatNavHost(
                 val action = pendingAction
                 pendingAction = null
                 action?.invoke()
+            }
+        )
+    }
+
+    // رسالة "هذا القسم مغلق مؤقتًا" — تظهر عند محاولة فتح قسم أغلقه المدير
+    // مؤقتًا (عبر withSectionCheck أعلاه)، مع سبب الإغلاق إن كان موجودًا.
+    val closedInfo = closedSectionDialog
+    if (closedInfo != null) {
+        val (sectionLabel, reason) = closedInfo
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { closedSectionDialog = null },
+            title = { androidx.compose.material3.Text("$sectionLabel مغلق مؤقتًا 🚧") },
+            text = {
+                androidx.compose.material3.Text(
+                    reason?.takeIf { it.isNotBlank() }
+                        ?: "هذا القسم مغلق مؤقتًا حاليًا، حاول مرة أخرى لاحقًا."
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { closedSectionDialog = null }) {
+                    androidx.compose.material3.Text("حسنًا")
+                }
             }
         )
     }

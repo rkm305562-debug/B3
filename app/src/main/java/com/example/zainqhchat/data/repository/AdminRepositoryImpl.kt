@@ -92,4 +92,10 @@ class AdminRepositoryImpl(
 
     override suspend fun fetchActionLog(): List<AdminActionLogEntry> =
         databaseService.fetchAdminActionLog()
+
+    override suspend fun setFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit> =
+        databaseService.adminSetFeatureFlag(sectionKey, enabled, reason)
+
+    override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> =
+        databaseService.fetchFeatureFlags()
 }

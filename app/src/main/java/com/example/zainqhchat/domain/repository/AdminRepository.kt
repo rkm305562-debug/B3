@@ -24,4 +24,11 @@ interface AdminRepository {
     suspend fun adjustUserCurrency(targetUserId: String, coinsDelta: Long, diamondsDelta: Long, reason: String?): Result<Unit>
     suspend fun broadcastNotification(title: String, body: String?): Result<Int>
     suspend fun fetchActionLog(): List<AdminActionLogEntry>
+
+    /** تفعيل/تعطيل قسم من أقسام التطبيق مؤقتًا (يظهر فورًا لكل المستخدمين،
+     *  بمن فيهم الزوّار غير المسجَّلين، فور تحديث الصفحة الرئيسية). */
+    suspend fun setFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit>
+
+    /** حالة كل الأقسام الحالية — لعرضها في لوحة تحكم المدير. */
+    suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag>
 }

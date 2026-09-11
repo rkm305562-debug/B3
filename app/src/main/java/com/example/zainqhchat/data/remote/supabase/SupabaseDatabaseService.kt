@@ -74,6 +74,13 @@ interface SupabaseDatabaseService {
     suspend fun adminBroadcastNotification(title: String, body: String?): Result<Int>
     suspend fun fetchAdminActionLog(limit: Int = 100): List<AdminActionLogEntry>
 
+    /** حالة كل أقسام التطبيق (مفعّل/مغلق مؤقتًا) — قراءة عامة، متاحة حتى
+     *  للزوّار قبل تسجيل الدخول. */
+    suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag>
+
+    /** تفعيل/تعطيل قسم مؤقتًا — للمدير فقط (يتحقق الخادم من role='admin'). */
+    suspend fun adminSetFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit>
+
     /**
      * حذف نهائي وحقيقي لحساب المستخدم الحالي عبر RPC حقيقي (`delete_own_account`
      * في supabase/schema.sql)، يعمل بصلاحيات المستخدم نفسه فقط (auth.uid())
@@ -539,6 +546,25 @@ class SupabaseDatabaseServiceImpl(
         val array = JSONArray(body)
         return (0 until array.length()).map { SupabaseMappers.adminActionLogFromJson(array.getJSONObject(it)) }
     }
+
+    override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> {
+        // authHeaders() يعمل جيدًا حتى بلا جلسة (زائر) — يعود فقط بمفتاح anon
+        // العام حينها، وسياسة القراءة على الجدول مفتوحة للجميع أصلاً.
+        val url = "$restBaseUrl/app_feature_flags?select=*"
+        val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
+        val body = SupabaseHttp.execute(request)
+        val array = JSONArray(body)
+        return (0 until array.length()).map { SupabaseMappers.featureFlagFromJson(array.getJSONObject(it)) }
+    }
+
+    override suspend fun adminSetFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit> =
+        callAdminRpc(
+            "admin_set_feature_flag",
+            JSONObject()
+                .put("p_section_key", sectionKey)
+                .put("p_enabled", enabled)
+                .put("p_reason", reason ?: JSONObject.NULL)
+        )
 
     /**
      * كل دوال RPC الإدارية تُرجع خطأ حقيقي (رسالة "not authorized...") إن لم

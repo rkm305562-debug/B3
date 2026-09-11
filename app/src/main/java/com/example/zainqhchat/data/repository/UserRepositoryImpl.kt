@@ -193,4 +193,13 @@ class UserRepositoryImpl(
             null
         }
     }
+
+    override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> =
+        withContext(Dispatchers.IO) {
+            try {
+                databaseService.fetchFeatureFlags()
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
 }

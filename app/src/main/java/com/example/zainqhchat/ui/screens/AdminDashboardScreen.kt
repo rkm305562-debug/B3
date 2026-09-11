@@ -33,6 +33,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -109,6 +111,7 @@ fun AdminDashboardScreen(
                     Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("المستخدمون") })
                     Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("سجل الإجراءات") })
                     Tab(selected = selectedTab == 3, onClick = { selectedTab = 3 }, text = { Text("بث إشعار") })
+                    Tab(selected = selectedTab == 4, onClick = { selectedTab = 4 }, text = { Text("الأقسام") })
                 }
             }
         },
@@ -120,6 +123,7 @@ fun AdminDashboardScreen(
                 1 -> AdminUsersTab(adminViewModel, onOpenProfile)
                 2 -> AdminActionLogTab(adminViewModel)
                 3 -> AdminBroadcastTab(adminViewModel)
+                4 -> AdminFeatureFlagsTab(adminViewModel)
             }
         }
     }
@@ -714,6 +718,129 @@ private fun AdminBroadcastTab(adminViewModel: AdminViewModel) {
             },
             dismissButton = {
                 TextButton(onClick = { showConfirm = false }) { Text("إلغاء", color = TextSecondaryMuted) }
+            }
+        )
+    }
+}
+
+/** أسماء ووصف عربي ودود لكل مفتاح قسم تقني — للعرض فقط داخل لوحة الإدارة. */
+private fun sectionDisplayName(key: String): String = when (key) {
+    "chats" -> "الدردشات"
+    "currency" -> "العملات"
+    "contact_admin" -> "تواصل مع المدير"
+    "online_users" -> "المتصلون الآن"
+    "public_chat_link" -> "الدردشة العامة (الرابط الخارجي)"
+    "settings" -> "الإعدادات"
+    else -> key
+}
+
+@Composable
+private fun AdminFeatureFlagsTab(adminViewModel: AdminViewModel) {
+    val flags by adminViewModel.featureFlags.collectAsState()
+    var reasonDialogFor by remember { mutableStateOf<String?>(null) }
+    var reasonText by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) { adminViewModel.loadFeatureFlags() }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        item {
+            Text(
+                "أغلق أي قسم مؤقتًا (لصيانة أو ظرف طارئ) — يظهر التغيير فورًا لكل " +
+                    "المستخدمين، بمن فيهم الزوّار، عند فتحهم الصفحة الرئيسية التالية.",
+                color = TextSecondaryMuted,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
+        val knownKeys = listOf("chats", "currency", "contact_admin", "online_users", "public_chat_link", "settings")
+        items(knownKeys) { key ->
+            val flag = flags.find { it.sectionKey == key }
+            val isEnabled = flag?.isEnabled ?: true
+
+            Surface(
+                color = LuxurySurfaceDark,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(sectionDisplayName(key), color = TextPrimaryWhite, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            if (!isEnabled && !flag?.disabledReason.isNullOrBlank()) {
+                                Text(
+                                    "مغلق: ${flag?.disabledReason}",
+                                    color = StatusErrorRed,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isEnabled,
+                            onCheckedChange = { newValue ->
+                                if (newValue) {
+                                    adminViewModel.setFeatureFlag(key, true, null)
+                                } else {
+                                    reasonText = ""
+                                    reasonDialogFor = key
+                                }
+                            },
+                            colors = SwitchDefaults.colors(checkedTrackColor = GoldPrimary)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    val closingKey = reasonDialogFor
+    if (closingKey != null) {
+        AlertDialog(
+            onDismissRequest = { reasonDialogFor = null },
+            containerColor = LuxurySurfaceDark,
+            title = { Text("إغلاق \"${sectionDisplayName(closingKey)}\" مؤقتًا", color = GoldPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(
+                        "سيظهر هذا السبب للمستخدمين عند محاولتهم فتح هذا القسم (اختياري).",
+                        color = TextSecondaryMuted,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    OutlinedTextField(
+                        value = reasonText,
+                        onValueChange = { reasonText = it },
+                        label = { Text("سبب الإغلاق (اختياري)", color = TextSecondaryMuted) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = GoldPrimary,
+                            unfocusedBorderColor = LuxuryBorderGold,
+                            focusedTextColor = TextPrimaryWhite,
+                            unfocusedTextColor = TextPrimaryWhite
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    adminViewModel.setFeatureFlag(closingKey, false, reasonText.trim().ifBlank { null })
+                    reasonDialogFor = null
+                }) {
+                    Text("إغلاق القسم", color = StatusErrorRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reasonDialogFor = null }) { Text("إلغاء", color = TextSecondaryMuted) }
             }
         )
     }

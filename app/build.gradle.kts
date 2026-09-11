@@ -66,7 +66,12 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
+      // R8: تصغير وتشويش أسماء الأصناف/الدوال (حماية أساسية من فك الحزم
+      // والاستنساخ المباشر للكود المصدري)، مع تقليص الموارد غير المستخدمة.
+      // القواعد الإضافية في proguard-rules.pro تحمي المكتبات التي قد
+      // تحتاج انعكاسًا وقت التشغيل (Room والنماذج).
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
