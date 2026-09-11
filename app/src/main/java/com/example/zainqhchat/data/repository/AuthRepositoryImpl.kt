@@ -44,7 +44,16 @@ class AuthRepositoryImpl(
             return@withContext null
         }
 
-        val user = fetchUserWithRetry(userId)
+        // تُلتقَط أي مشكلة شبكة هنا (لا يوجد إنترنت إطلاقًا، انقطاع مفاجئ،
+        // ضعف شديد، إلخ) — قبل هذا الإصلاح كان أي استثناء شبكة غير مُعالَج
+        // من fetchUserWithRetry يُسقط التطبيق بالكامل فورًا عند كل إقلاع بلا
+        // إنترنت، لأن checkSession() يستدعي هذه الدالة تلقائيًا عند بدء
+        // التطبيق دون أي محاولة/التقاط في أي مكان بالسلسلة بأكملها.
+        val user = try {
+            fetchUserWithRetry(userId)
+        } catch (e: Exception) {
+            null
+        }
         if (user != null) {
             localUserCache.upsert(user)
             markOnline(user.id)
