@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -117,49 +118,94 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .statusBarsPadding()
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                // شريط العودة والخيارات العلوي
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.testTag("back_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "رجوع",
-                            tint = GoldPrimary
-                        )
-                    }
-
-                    Text(
-                        text = if (isSelf) "ملفي الشخصي 👑" else "الملف الشخصي 👤",
-                        color = GoldPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                // غلاف علوي متدرّج (Cover) + الصورة الشخصية عائمة على حدوده —
+                // نمط تصميم أكثر عمقًا وحيوية من الرأس المسطّح السابق.
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(GoldDark.copy(alpha = 0.9f), LuxuryBlackBg)
+                                )
+                            )
                     )
 
-                    if (!isSelf) {
-                        Row {
-                            IconButton(onClick = { showReportDialog = true }) {
-                                Icon(Icons.Default.Flag, contentDescription = "إبلاغ", tint = Color(0xFFFF5252))
-                            }
-                            IconButton(onClick = { showBlockDialog = true }) {
-                                Icon(Icons.Default.Block, contentDescription = "حظر", tint = TextSecondaryMuted)
-                            }
+                    // شريط العودة والخيارات — يطفو فوق الغلاف مباشرة
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = onBackClick,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.28f))
+                                .testTag("back_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "رجوع",
+                                tint = TextPrimaryWhite
+                            )
                         }
-                    } else {
-                        Spacer(modifier = Modifier.width(48.dp))
+
+                        if (!isSelf) {
+                            Row {
+                                IconButton(
+                                    onClick = { showReportDialog = true },
+                                    modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.28f))
+                                ) {
+                                    Icon(Icons.Default.Flag, contentDescription = "إبلاغ", tint = Color(0xFFFF7A7A))
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IconButton(
+                                    onClick = { showBlockDialog = true },
+                                    modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.28f))
+                                ) {
+                                    Icon(Icons.Default.Block, contentDescription = "حظر", tint = TextPrimaryWhite)
+                                }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.width(48.dp))
+                        }
+                    }
+
+                    // الصورة الشخصية بحلقة بيضاء سميكة، تطفو نصفها فوق الغلاف
+                    // ونصفها فوق المحتوى — عنصر تصميم كلاسيكي يعطي عمقًا فوريًا.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = 46.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(116.dp)
+                                .clip(CircleShape)
+                                .background(LuxuryBlackBg)
+                                .border(4.dp, LuxuryBlackBg, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            UserAvatar(
+                                name = user.name,
+                                avatarUrl = user.avatarUrl,
+                                size = 108.dp,
+                                isOnline = user.isReallyOnline(),
+                                tier = user.tier
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(54.dp))
 
                 // بطاقة صورة ومعلومات المستخدم الرئيسية
                 Column(
@@ -168,16 +214,6 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    UserAvatar(
-                        name = user.name,
-                        avatarUrl = user.avatarUrl,
-                        size = 110.dp,
-                        isOnline = user.isReallyOnline(),
-                        tier = user.tier
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = user.name,
                         color = TextPrimaryWhite,
@@ -202,21 +238,29 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // إحصائيات المتابعين والذين يتابعهم والنقاط
-                    LuxuryCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            ProfileStatItem(count = user.followerCount.toString(), label = "المتابعين")
-                            Box(modifier = Modifier.size(1.dp, 30.dp).background(LuxuryBorderGold))
-                            ProfileStatItem(count = user.followingCount.toString(), label = "يتابعهم")
-                            Box(modifier = Modifier.size(1.dp, 30.dp).background(LuxuryBorderGold))
-                            ProfileStatItem(count = user.points.toString(), label = "النقاط 🌟")
-                        }
+                    // إحصائيات المتابعين والذين يتابعهم والنقاط — على هيئة
+                    // شرائح (Chips) منفصلة بدل صف واحد مقسَّم بخطوط، لإحساس
+                    // أكثر حيوية وحداثة.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        ProfileStatChip(
+                            count = user.followerCount.toString(),
+                            label = "المتابعين",
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileStatChip(
+                            count = user.followingCount.toString(),
+                            label = "يتابعهم",
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileStatChip(
+                            count = user.points.toString(),
+                            label = "النقاط 🌟",
+                            modifier = Modifier.weight(1f),
+                            highlighted = true
+                        )
                     }
 
                     // شارة السيارة المختارة (قسم العملات) — تظهر فقط إن كان المستخدم قد اشترى واختار سيارة.
@@ -405,8 +449,24 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileStatItem(count: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun ProfileStatChip(
+    count: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    highlighted: Boolean = false
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (highlighted) GoldPrimary.copy(alpha = 0.14f) else LuxurySurfaceCard)
+            .border(
+                1.dp,
+                if (highlighted) GoldPrimary.copy(alpha = 0.4f) else LuxuryBorderGold,
+                RoundedCornerShape(16.dp)
+            )
+            .padding(vertical = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = count,
             color = GoldPrimary,

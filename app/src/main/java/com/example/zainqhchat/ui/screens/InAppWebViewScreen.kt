@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.WifiOff
@@ -64,8 +65,43 @@ fun InAppWebViewScreen(
     var webViewUnavailable by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize().padding(top = 56.dp)) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = LuxurySurfaceDark,
+            shadowElevation = 2.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .testTag("in_app_webview_back_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        tint = TextPrimaryWhite
+                    )
+                }
+                Text(
+                    text = title,
+                    color = TextPrimaryWhite,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(vertical = 12.dp)
+                )
+            }
+        }
+
+        // Box بوزن (weight) يملأ كل المساحة المتبقية أسفل الشريط العلوي
+        // تمامًا — بغضّ النظر عن ارتفاعه الفعلي (يختلف حسب الجهاز بسبب
+        // اختلاف ارتفاع شريط الحالة)، فلا تقصّ محتوى الصفحة من الأعلى بعد
+        // الآن أبدًا (كانت المشكلة سابقًا استخدام حشو علوي ثابت 56dp تخمينيًا
+        // بدل ترك التخطيط الطبيعي يحسب الارتفاع الحقيقي بنفسه).
+        Box(modifier = Modifier.fillMaxSize().weight(1f)) {
             if (webViewUnavailable) {
                 Column(
                     modifier = Modifier
@@ -135,36 +171,6 @@ fun InAppWebViewScreen(
                 ) {
                     CircularProgressIndicator(color = GoldPrimary)
                 }
-            }
-        }
-
-        Surface(
-            color = LuxurySurfaceDark,
-            shadowElevation = 2.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-        ) {
-            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .testTag("in_app_webview_back_btn")
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        tint = TextPrimaryWhite
-                    )
-                }
-                Text(
-                    text = title,
-                    color = TextPrimaryWhite,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(vertical = 12.dp)
-                )
             }
         }
     }

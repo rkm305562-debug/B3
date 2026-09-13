@@ -111,29 +111,34 @@ class SupabaseDatabaseServiceImpl(
 
     // ============================= USERS ==================================
 
-    override suspend fun fetchUsersExcept(currentUserId: String): List<User> {
+    override suspend fun fetchUsersExcept(currentUserId: String): List<User> = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.USERS}?id=neq.${enc(currentUserId)}&select=*&order=is_online.desc,last_active_timestamp.desc"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.userFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.userFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        // فشل شبكة (لا إنترنت/انقطاع مفاجئ) -> قائمة فارغة بدل إسقاط التطبيق.
+        emptyList()
     }
 
-    override suspend fun fetchAdminUser(): User? {
+    override suspend fun fetchAdminUser(): User? = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.USERS}?role=eq.admin&select=*&limit=1"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val array = JSONArray(SupabaseHttp.execute(request))
-        if (array.length() == 0) return null
-        return SupabaseMappers.userFromJson(array.getJSONObject(0))
+        if (array.length() == 0) null else SupabaseMappers.userFromJson(array.getJSONObject(0))
+    } catch (e: Exception) {
+        null
     }
 
-    override suspend fun fetchUserById(userId: String): User? {
+    override suspend fun fetchUserById(userId: String): User? = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.USERS}?id=eq.${enc(userId)}&select=*&limit=1"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        if (array.length() == 0) return null
-        return SupabaseMappers.userFromJson(array.getJSONObject(0))
+        if (array.length() == 0) null else SupabaseMappers.userFromJson(array.getJSONObject(0))
+    } catch (e: Exception) {
+        null
     }
 
     override suspend fun updateUserProfile(userId: String, name: String, age: Int, avatarUrl: String?): Result<Unit> {
@@ -198,23 +203,27 @@ class SupabaseDatabaseServiceImpl(
 
     // ========================= CHAT MESSAGES ===============================
 
-    override suspend fun fetchPublicMessages(limit: Int): List<ChatMessage> {
+    override suspend fun fetchPublicMessages(limit: Int): List<ChatMessage> = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.CHAT_MESSAGES}" +
             "?is_public=eq.true&select=*&order=timestamp.desc&limit=$limit"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }.reversed()
+        (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }.reversed()
+    } catch (e: Exception) {
+        emptyList()
     }
 
-    override suspend fun fetchPrivateMessages(user1Id: String, user2Id: String, limit: Int): List<ChatMessage> {
+    override suspend fun fetchPrivateMessages(user1Id: String, user2Id: String, limit: Int): List<ChatMessage> = try {
         val filter = "or=(and(sender_id.eq.${enc(user1Id)},recipient_id.eq.${enc(user2Id)})," +
             "and(sender_id.eq.${enc(user2Id)},recipient_id.eq.${enc(user1Id)}))"
         val url = "$restBaseUrl/${SupabaseConfig.Tables.CHAT_MESSAGES}?is_public=eq.false&$filter&select=*&order=timestamp.desc&limit=$limit"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }.reversed()
+        (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }.reversed()
+    } catch (e: Exception) {
+        emptyList()
     }
 
     override suspend fun sendMessage(message: ChatMessage): Result<ChatMessage> {
@@ -282,19 +291,23 @@ class SupabaseDatabaseServiceImpl(
         }
     }
 
-    override suspend fun isFollowing(followerId: String, followingId: String): Boolean {
+    override suspend fun isFollowing(followerId: String, followingId: String): Boolean = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.FOLLOWS}?follower_id=eq.${enc(followerId)}&following_id=eq.${enc(followingId)}&select=follower_id&limit=1"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
-        return JSONArray(body).length() > 0
+        JSONArray(body).length() > 0
+    } catch (e: Exception) {
+        false
     }
 
-    override suspend fun followingIds(followerId: String): Set<String> {
+    override suspend fun followingIds(followerId: String): Set<String> = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.FOLLOWS}?follower_id=eq.${enc(followerId)}&select=following_id"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { array.getJSONObject(it).getString("following_id") }.toSet()
+        (0 until array.length()).map { array.getJSONObject(it).getString("following_id") }.toSet()
+    } catch (e: Exception) {
+        emptySet()
     }
 
     // ============================ BLOCKS ===================================
@@ -320,19 +333,23 @@ class SupabaseDatabaseServiceImpl(
         }
     }
 
-    override suspend fun isBlocked(blockerId: String, blockedUserId: String): Boolean {
+    override suspend fun isBlocked(blockerId: String, blockedUserId: String): Boolean = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.BLOCKS}?blocker_id=eq.${enc(blockerId)}&blocked_user_id=eq.${enc(blockedUserId)}&select=blocker_id&limit=1"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
-        return JSONArray(body).length() > 0
+        JSONArray(body).length() > 0
+    } catch (e: Exception) {
+        false
     }
 
-    override suspend fun blockedIds(blockerId: String): Set<String> {
+    override suspend fun blockedIds(blockerId: String): Set<String> = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.BLOCKS}?blocker_id=eq.${enc(blockerId)}&select=blocked_user_id"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { array.getJSONObject(it).getString("blocked_user_id") }.toSet()
+        (0 until array.length()).map { array.getJSONObject(it).getString("blocked_user_id") }.toSet()
+    } catch (e: Exception) {
+        emptySet()
     }
 
     // ============================ REPORTS ==================================
@@ -359,13 +376,15 @@ class SupabaseDatabaseServiceImpl(
 
     // ====================== PRIVATE CONVERSATIONS (BATCH) ==================
 
-    override suspend fun fetchPrivateMessagesForUser(userId: String, limit: Int): List<ChatMessage> {
+    override suspend fun fetchPrivateMessagesForUser(userId: String, limit: Int): List<ChatMessage> = try {
         val filter = "or=(sender_id.eq.${enc(userId)},recipient_id.eq.${enc(userId)})"
         val url = "$restBaseUrl/${SupabaseConfig.Tables.CHAT_MESSAGES}?is_public=eq.false&$filter&select=*&order=timestamp.desc&limit=$limit"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.messageFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        emptyList()
     }
 
     override suspend fun markMessagesRead(currentUserId: String, senderId: String): Result<Unit> {
@@ -387,12 +406,14 @@ class SupabaseDatabaseServiceImpl(
 
     // ============================ NOTIFICATIONS =============================
 
-    override suspend fun fetchNotifications(userId: String, limit: Int): List<NotificationItem> {
+    override suspend fun fetchNotifications(userId: String, limit: Int): List<NotificationItem> = try {
         val url = "$restBaseUrl/${SupabaseConfig.Tables.NOTIFICATIONS}?user_id=eq.${enc(userId)}&select=*&order=created_at.desc&limit=$limit"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.notificationFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.notificationFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        emptyList()
     }
 
     override suspend fun markNotificationRead(notificationId: Long): Result<Unit> {
@@ -443,7 +464,7 @@ class SupabaseDatabaseServiceImpl(
 
     // ==================== نظام المدير (Admin) ====================
 
-    override suspend fun fetchAllUsersForAdmin(searchQuery: String?, limit: Int): List<User> {
+    override suspend fun fetchAllUsersForAdmin(searchQuery: String?, limit: Int): List<User> = try {
         val filter = if (!searchQuery.isNullOrBlank()) {
             "&or=(name.ilike.*${enc(searchQuery.trim())}*,username.ilike.*${enc(searchQuery.trim())}*)"
         } else ""
@@ -451,7 +472,9 @@ class SupabaseDatabaseServiceImpl(
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.userFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.userFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        emptyList()
     }
 
     override suspend fun adminSetBanStatus(targetUserId: String, banned: Boolean, reason: String?): Result<Unit> =
@@ -539,22 +562,26 @@ class SupabaseDatabaseServiceImpl(
         }
     }
 
-    override suspend fun fetchAdminActionLog(limit: Int): List<AdminActionLogEntry> {
+    override suspend fun fetchAdminActionLog(limit: Int): List<AdminActionLogEntry> = try {
         val url = "$restBaseUrl/admin_action_log?select=*&order=created_at.desc&limit=$limit"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.adminActionLogFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.adminActionLogFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        emptyList()
     }
 
-    override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> {
+    override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> = try {
         // authHeaders() يعمل جيدًا حتى بلا جلسة (زائر) — يعود فقط بمفتاح anon
         // العام حينها، وسياسة القراءة على الجدول مفتوحة للجميع أصلاً.
         val url = "$restBaseUrl/app_feature_flags?select=*"
         val request = Request.Builder().url(url).headers(authHeaders().build()).get().build()
         val body = SupabaseHttp.execute(request)
         val array = JSONArray(body)
-        return (0 until array.length()).map { SupabaseMappers.featureFlagFromJson(array.getJSONObject(it)) }
+        (0 until array.length()).map { SupabaseMappers.featureFlagFromJson(array.getJSONObject(it)) }
+    } catch (e: Exception) {
+        emptyList()
     }
 
     override suspend fun adminSetFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit> =
