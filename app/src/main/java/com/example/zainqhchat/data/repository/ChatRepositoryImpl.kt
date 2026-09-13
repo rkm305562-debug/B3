@@ -35,8 +35,9 @@ class ChatRepositoryImpl(
         try {
             databaseService.fetchPublicMessages().forEach { current[it.id] = it }
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ — يُسقط شاشة الدردشة العامة فورًا عند
+            // فتحها بلا إنترنت. نُكمل بقائمة فارغة؛ الاتصال اللحظي يُحدِّثها
+            // تلقائيًا بمجرد عودة الإنترنت.
         }
         trySend(current.values.sortedBy { it.timestamp })
 
@@ -89,8 +90,9 @@ class ChatRepositoryImpl(
         try {
             databaseService.fetchPrivateMessages(currentUserId, otherUserId).forEach { current[it.id] = it }
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ — هذا بالضبط كان يُسقط التطبيق فورًا عند
+            // انقطاع الإنترنت أثناء وجود المستخدم داخل محادثة خاصة نشطة.
+            // نُكمل بقائمة فارغة؛ الاتصال اللحظي يُحدِّثها تلقائيًا عند العودة.
         }
         trySend(current.values.sortedBy { it.timestamp })
 
@@ -148,8 +150,11 @@ class ChatRepositoryImpl(
                 }
             }
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ — يُسقط شاشة "الدردشات" الرئيسية فورًا
+            // عند فتحها بلا إنترنت. نُكمل بقوائم فارغة، ومهمة الاستطلاع
+            // الدوري (pollJob) أدناه ستُحدِّثها تلقائيًا بمجرد عودة الإنترنت.
+            users = emptyList()
+            publicLast = null
         }
 
         fun buildPreviews(): List<ChatPreview> {

@@ -30,8 +30,12 @@ class NotificationRepositoryImpl(
         try {
             databaseService.fetchNotifications(userId).forEach { current[it.id] = it }
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ هنا (close(e)) كما كان سابقًا — إغلاقه
+            // بخطأ يجعل أي طرف يجمع هذا الـ Flow (كـ NotificationViewModel
+            // عبر flatMapLatest/stateIn) يتلقّى استثناءً غير معالَج يُسقط
+            // التطبيق فورًا عند فتح الإشعارات بلا إنترنت. بدلاً من ذلك: نكمل
+            // بقائمة فارغة، والاتصال اللحظي (Realtime) أدناه سيُكمل العمل
+            // من تلقاء نفسه بمجرد عودة الإنترنت (استرجاع تلقائي بلا أي تدخل).
         }
         trySend(current.values.sortedByDescending { it.createdAtMillis })
 

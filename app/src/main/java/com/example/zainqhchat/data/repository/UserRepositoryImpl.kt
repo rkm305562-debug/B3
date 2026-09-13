@@ -35,8 +35,11 @@ class UserRepositoryImpl(
         var current: User? = try {
             getUserById(userId, currentUserId)
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ (كان close(e) سابقًا) — هذا يُسقط أي شاشة
+            // تعرض ملفًا شخصيًا (ProfileScreen) فورًا عند فتحها بلا إنترنت.
+            // بدلاً من ذلك: نُكمل بقيمة null (الشاشة تُظهر مؤشر تحميل)، وتحدُث
+            // الاتصال اللحظي أدناه سيُحدِّثها تلقائيًا بمجرد عودة الإنترنت.
+            null
         }
         trySend(current)
 
@@ -76,8 +79,12 @@ class UserRepositoryImpl(
             followingIds = databaseService.followingIds(currentUserId)
             blockedIds = databaseService.blockedIds(currentUserId)
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ — يُسقط شاشة "المتصلون الآن" فورًا عند
+            // فتحها بلا إنترنت. نُكمل بقوائم فارغة بدل ذلك؛ الاتصال اللحظي
+            // (Realtime) أدناه يُحدِّثها تلقائيًا بمجرد عودة الإنترنت.
+            users = emptyList()
+            followingIds = emptySet()
+            blockedIds = emptySet()
         }
 
         fun decorate() = users.map { user ->

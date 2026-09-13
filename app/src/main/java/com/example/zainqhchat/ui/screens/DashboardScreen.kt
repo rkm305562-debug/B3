@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -121,7 +122,14 @@ fun DashboardScreen(
             .background(LuxuryBlackBg)
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            // على الشاشات العريضة جدًا (تابلت) يبقى المحتوى بعرض معقول
+            // ومتمركزًا بدل أن يتمدد بلا حدود ويبدو متباعدًا وغير مقروء؛
+            // على الهاتف العادي (العرض النموذجي أقل من 640dp) لا يتغيّر شيء
+            // إطلاقًا لأن القيد لا يُفعَّل عمليًا.
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 640.dp)
+                .align(Alignment.TopCenter),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {

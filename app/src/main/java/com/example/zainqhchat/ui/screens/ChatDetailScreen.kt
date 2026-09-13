@@ -485,9 +485,20 @@ fun ChatDetailScreen(
                                 if (uriToSend != null) {
                                     coroutineScope.launch {
                                         val (bytes, mimeType) = withContext(Dispatchers.IO) {
-                                            val mime = context.contentResolver.getType(uriToSend) ?: "image/jpeg"
-                                            val data = context.contentResolver.openInputStream(uriToSend)?.use { it.readBytes() }
-                                            data to mime
+                                            val compressed = com.example.zainqhchat.core.util.ImageCompressor.compress(
+                                                context,
+                                                uriToSend,
+                                                com.example.zainqhchat.core.util.ImageCompressor.MAX_DIMENSION_CHAT_IMAGE
+                                            )
+                                            if (compressed != null) {
+                                                compressed
+                                            } else {
+                                                // فشل الضغط (نادر) -> نعود للطريقة القديمة (رفع الصورة كما هي)
+                                                // بدل عدم إرسال أي شيء.
+                                                val mime = context.contentResolver.getType(uriToSend) ?: "image/jpeg"
+                                                val data = context.contentResolver.openInputStream(uriToSend)?.use { it.readBytes() }
+                                                data to mime
+                                            }
                                         }
                                         if (bytes != null) {
                                             chatViewModel.sendImageMessage(

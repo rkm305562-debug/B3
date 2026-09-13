@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
@@ -69,7 +70,12 @@ fun GuestDashboardScreen(
             .background(LuxuryBlackBg)
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            // نفس معالجة تناسق الشاشات العريضة (تابلت) في الصفحة الرئيسية
+            // للمستخدم المسجَّل — انظر التعليق المطابق في DashboardScreen.kt.
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 640.dp)
+                .align(Alignment.TopCenter),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item { GuestHeader(onSignInClick = onRequireAuth) }

@@ -9,6 +9,7 @@ import com.example.zainqhchat.domain.repository.NotificationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -48,7 +49,8 @@ class NotificationViewModel(
     val notifications: StateFlow<List<NotificationItem>> = _currentUserIdState.flatMapLatest { userId ->
         if (userId == null) flowOf(emptyList())
         else notificationRepository.getNotificationsFlow(userId)
-    }.stateIn(
+    }.catch { emit(emptyList()) } // شبكة أمان إضافية: أي خطأ غير متوقّع هنا يُصبح قائمة فارغة، لا انهيارًا للتطبيق.
+        .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()

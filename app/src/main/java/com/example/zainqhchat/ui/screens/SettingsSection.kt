@@ -559,11 +559,22 @@ fun EditProfileDialog(
                             uriToUpload != null -> {
                                 val newAvatar = withContext(Dispatchers.IO) {
                                     runCatching {
-                                        val bytes = context.contentResolver
-                                            .openInputStream(uriToUpload)?.use { it.readBytes() }
-                                        val mimeType = context.contentResolver.getType(uriToUpload) ?: "image/jpeg"
-                                        bytes?.let {
-                                            com.example.zainqhchat.domain.model.NewAvatar(it, mimeType)
+                                        val compressed = com.example.zainqhchat.core.util.ImageCompressor.compress(
+                                            context,
+                                            uriToUpload,
+                                            com.example.zainqhchat.core.util.ImageCompressor.MAX_DIMENSION_AVATAR
+                                        )
+                                        if (compressed != null) {
+                                            val (bytes, mimeType) = compressed
+                                            com.example.zainqhchat.domain.model.NewAvatar(bytes, mimeType)
+                                        } else {
+                                            // فشل الضغط (نادر) -> نعود للطريقة القديمة (رفع الصورة كما هي).
+                                            val bytes = context.contentResolver
+                                                .openInputStream(uriToUpload)?.use { it.readBytes() }
+                                            val mimeType = context.contentResolver.getType(uriToUpload) ?: "image/jpeg"
+                                            bytes?.let {
+                                                com.example.zainqhchat.domain.model.NewAvatar(it, mimeType)
+                                            }
                                         }
                                     }.getOrNull()
                                 }

@@ -25,8 +25,8 @@ class AdminRepositoryImpl(
         try {
             databaseService.fetchPublicMessages(limit = 200).forEach { current[it.id] = it }
         } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
+            // لا نُغلق الـ Flow بخطأ — يُسقط تبويب الإشراف في لوحة الإدارة
+            // فورًا عند فتحه بلا إنترنت. نُكمل بقائمة فارغة بدل ذلك.
         }
         trySend(current.values.sortedByDescending { it.timestamp })
 
