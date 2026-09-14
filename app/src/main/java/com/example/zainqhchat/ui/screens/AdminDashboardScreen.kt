@@ -301,31 +301,29 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            TextButton(onClick = {
-                                if (user.isBanned) {
-                                    // فكّ الحظر إجراء غير مدمّر — يبقى فوريًا بلا تأكيد.
-                                    adminViewModel.setBanStatus(user.id, false, null)
-                                } else {
-                                    // الحظر أصبح يحذف الحساب نهائيًا ويمنع الجهاز من
-                                    // التسجيل مجددًا، لذا يتطلب تأكيدًا صريحًا الآن.
-                                    banUserTarget = user
-                                }
-                            }) {
+                            TextButton(onClick = { banUserTarget = user }) {
                                 Icon(
-                                    if (user.isBanned) Icons.Default.CheckCircle else Icons.Default.Block,
+                                    Icons.Default.Block,
                                     contentDescription = null,
-                                    tint = if (user.isBanned) StatusOnlineGreen else StatusErrorRed,
+                                    tint = StatusErrorRed,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
+                                Text("حظر دائم", color = StatusErrorRed, fontSize = 12.sp)
+                            }
+                            TextButton(onClick = {
+                                if (user.isBanned) {
+                                    // إلغاء الحظر (المؤقت) إجراء غير مدمّر — فوري بلا نافذة تأكيد.
+                                    adminViewModel.setBanStatus(user.id, false, null)
+                                } else {
+                                    tempBanTarget = user
+                                }
+                            }) {
                                 Text(
-                                    if (user.isBanned) "فك الحظر" else "حظر دائم",
+                                    if (user.isBanned) "إلغاء الحظر" else "حظر مؤقت",
                                     color = if (user.isBanned) StatusOnlineGreen else StatusErrorRed,
                                     fontSize = 12.sp
                                 )
-                            }
-                            TextButton(onClick = { tempBanTarget = user }) {
-                                Text("حظر مؤقت", color = StatusErrorRed, fontSize = 12.sp)
                             }
                             TextButton(onClick = { pointsTarget = user }) {
                                 Text("النقاط", color = GoldPrimary, fontSize = 12.sp)

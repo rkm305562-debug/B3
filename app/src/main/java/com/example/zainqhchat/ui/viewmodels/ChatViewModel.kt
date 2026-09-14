@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -50,13 +51,14 @@ class ChatViewModel(
     val chatPreviews: StateFlow<List<ChatPreview>> = _currentUserIdState.flatMapLatest { userId ->
         if (userId == null) flowOf(emptyList())
         else chatRepository.getChatPreviewsFlow(userId)
-    }.stateIn(
+    }.catch { emit(emptyList()) }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
     val publicMessages: StateFlow<List<ChatMessage>> = chatRepository.getPublicMessagesFlow()
+        .catch { emit(emptyList()) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -66,7 +68,7 @@ class ChatViewModel(
     /** لقطة حيّة بكل المستخدمين — تُستخدم فقط لاكتشاف الإشارات (@) عند الإرسال. */
     private val allUsers: StateFlow<List<User>> = _currentUserIdState.flatMapLatest { userId ->
         if (userId == null) flowOf(emptyList()) else userRepository.getAllUsersFlow(userId)
-    }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
+    }.catch { emit(emptyList()) }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
     private val directMessagesCache = java.util.concurrent.ConcurrentHashMap<String, StateFlow<List<ChatMessage>>>()
 
@@ -75,6 +77,7 @@ class ChatViewModel(
         val key = "${currentUserId}_$otherUserId"
         return directMessagesCache.getOrPut(key) {
             chatRepository.getDirectMessagesFlow(currentUserId, otherUserId)
+                .catch { emit(emptyList()) }
                 .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),

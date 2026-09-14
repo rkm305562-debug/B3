@@ -1,6 +1,7 @@
 package com.example.zainqhchat.ui.screens
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.view.ViewGroup
@@ -23,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,10 +32,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.zainqhchat.ui.components.GoldButton
 import com.example.zainqhchat.ui.theme.GoldPrimary
 import com.example.zainqhchat.ui.theme.LuxuryBlackBg
@@ -43,8 +49,9 @@ import com.example.zainqhchat.ui.theme.TextSecondaryMuted
 
 /**
  * يعرض رابطًا خارجيًا (مثل غرفة الدردشة العامة الخارجية) داخل التطبيق نفسه
- * عبر WebView، بدل فتح متصفح خارجي منفصل — مع شريط علوي بسيط وزر رجوع
- * ومؤشر تحميل أثناء فتح الصفحة.
+ * عبر WebView، بدل فتح متصفح خارجي منفصل، **بوضع ملء الشاشة الكامل** (إخفاء
+ * شريط الحالة العلوي طوال عرض هذه الشاشة تحديدًا، مع إعادته تلقائيًا فور
+ * مغادرتها) — مع شريط علوي بسيط عائم وزر رجوع ومؤشر تحميل أثناء فتح الصفحة.
  *
  * ملاحظة أمان مهمة: بعض الأجهزة (خصوصًا إصدارات أندرويد Go/بعض الأنظمة
  * المخصّصة أو الأجهزة المُدارة عبر MDM) لا تملك مكوّن "Android System
@@ -63,6 +70,21 @@ fun InAppWebViewScreen(
     var isLoading by remember { mutableStateOf(true) }
     var webViewUnavailable by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val view = LocalView.current
+
+    // وضع ملء الشاشة: نخفي أشرطة النظام (الحالة والتنقّل) فقط طوال وجود
+    // هذه الشاشة تحديدًا، ونعيدها تلقائيًا وفورًا عند مغادرتها (onDispose)
+    // كي لا يبقى التطبيق بأكمله في وضع ملء الشاشة بالخطأ في شاشات أخرى.
+    DisposableEffect(Unit) {
+        val window = (view.context as? Activity)?.window
+        val insetsController = window?.let { WindowCompat.getInsetsController(it, view) }
+        insetsController?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        insetsController?.hide(WindowInsetsCompat.Type.systemBars())
+
+        onDispose {
+            insetsController?.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Surface(

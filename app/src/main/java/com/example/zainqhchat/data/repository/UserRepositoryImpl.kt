@@ -166,6 +166,11 @@ class UserRepositoryImpl(
         databaseService.blockUser(currentUserId, targetUserId, reason)
     }
 
+    override suspend fun unblockUser(currentUserId: String, targetUserId: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            databaseService.unblockUser(currentUserId, targetUserId)
+        }
+
     override suspend fun reportUser(
         currentUserId: String,
         targetUserId: String,

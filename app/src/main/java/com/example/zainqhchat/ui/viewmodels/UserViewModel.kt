@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -34,7 +35,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     val allUsers: StateFlow<List<User>> = _currentUserIdState.flatMapLatest { currentUserId ->
         if (currentUserId == null) flowOf(emptyList())
         else userRepository.getAllUsersFlow(currentUserId)
-    }.stateIn(
+    }.catch { emit(emptyList()) }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -59,7 +60,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             OnlineStatusCategory.entries.associateWith { category ->
                 userList.filter { it.onlineCategory == category }
             }
-        }.stateIn(
+        }.catch { emit(emptyMap()) }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
@@ -71,6 +72,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         val key = "${currentUserId}_$userId"
         return userProfileCache.getOrPut(key) {
             userRepository.getUserByIdFlow(userId, currentUserId)
+                .catch { emit(null) }
                 .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),
@@ -91,10 +93,17 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-    fun blockUser(currentUserId: String, targetUserId: String, reason: String = "") {
+    fun toggleBlock(currentUserId: String, targetUserId: String, isCurrentlyBlocked: Boolean, reason: String = "") {
         viewModelScope.launch {
-            userRepository.blockUser(currentUserId, targetUserId, reason)
-                .onSuccess { _actionMessage.value = "تم حظر المستخدم بنجاح" }
+            if (isCurrentlyBlocked) {
+                userRepository.unblockUser(currentUserId, targetUserId)
+                    .onSuccess { _actionMessage.value = "تم إلغاء حظر المستخدم" }
+                    .onFailure { _actionMessage.value = it.message ?: "تعذّر إلغاء الحظر، حاول مرة أخرى" }
+            } else {
+                userRepository.blockUser(currentUserId, targetUserId, reason)
+                    .onSuccess { _actionMessage.value = "تم حظر المستخدم بنجاح" }
+                    .onFailure { _actionMessage.value = it.message ?: "تعذّر الحظر، حاول مرة أخرى" }
+            }
         }
     }
 

@@ -45,6 +45,7 @@ interface SupabaseDatabaseService {
     suspend fun followingIds(followerId: String): Set<String>
     suspend fun reportUser(reporterId: String, reportedId: String, reason: String, messageId: String? = null): Result<Unit>
     suspend fun blockUser(blockerId: String, blockedUserId: String, reason: String): Result<Unit>
+    suspend fun unblockUser(blockerId: String, blockedUserId: String): Result<Unit>
     suspend fun isBlocked(blockerId: String, blockedUserId: String): Boolean
     suspend fun blockedIds(blockerId: String): Set<String>
 
@@ -327,6 +328,22 @@ class SupabaseDatabaseServiceImpl(
             SupabaseHttp.execute(request)
             // الحظر يُلغي المتابعة تلقائيًا (نفس السلوك المطلوب سابقًا مع Room)
             unfollowUser(blockerId, blockedUserId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unblockUser(blockerId: String, blockedUserId: String): Result<Unit> {
+        return try {
+            val url = "$restBaseUrl/${SupabaseConfig.Tables.BLOCKS}" +
+                "?blocker_id=eq.${enc(blockerId)}&blocked_user_id=eq.${enc(blockedUserId)}"
+            val request = Request.Builder()
+                .url(url)
+                .headers(authHeaders().add("Prefer", "return=minimal").build())
+                .delete()
+                .build()
+            SupabaseHttp.execute(request)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -24,6 +24,7 @@ interface UserRepository {
     fun isFollowingFlow(currentUserId: String, targetUserId: String): Flow<Boolean>
 
     suspend fun blockUser(currentUserId: String, targetUserId: String, reason: String = ""): Result<Unit>
+    suspend fun unblockUser(currentUserId: String, targetUserId: String): Result<Unit>
 
     suspend fun reportUser(currentUserId: String, targetUserId: String, reason: String, messageId: String? = null): Result<Unit>
 

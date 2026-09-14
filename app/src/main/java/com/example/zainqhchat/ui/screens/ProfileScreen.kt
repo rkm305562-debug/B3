@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Flag
@@ -69,6 +70,7 @@ import com.example.zainqhchat.ui.theme.GoldPrimary
 import com.example.zainqhchat.ui.theme.LuxuryBlackBg
 import com.example.zainqhchat.ui.theme.LuxuryBorderGold
 import com.example.zainqhchat.ui.theme.LuxurySurfaceCard
+import com.example.zainqhchat.ui.theme.StatusOnlineGreen
 import com.example.zainqhchat.ui.theme.TextPrimaryWhite
 import com.example.zainqhchat.ui.theme.TextSecondaryMuted
 import com.example.zainqhchat.ui.viewmodels.UserViewModel
@@ -88,6 +90,15 @@ fun ProfileScreen(
     var showReportDialog by remember { mutableStateOf(false) }
     var reportReason by remember { mutableStateOf("") }
     var showBlockDialog by remember { mutableStateOf(false) }
+
+    // تحديث تفاؤلي فوري للواجهة: خادم Supabase لا يُرسل حدث Realtime على
+    // جدول users عند تغيّر جدول follows/blocks (جدولان منفصلان)، لذا تبقى
+    // isFollowedByCurrentUser/isBlockedByCurrentUser على حالتهما القديمة في
+    // الـ Flow حتى تحديث لاحق. هذا المتغيّر المحلي يجعل الزر يتبدّل فورًا
+    // عند الضغط دون انتظار الخادم، ويُعاد ضبطه إلى null عند تغيّر المستخدم
+    // المعروض (زيارة ملف شخصي آخر).
+    var isFollowingOverride by remember(targetUserId) { mutableStateOf<Boolean?>(null) }
+    var isBlockedOverride by remember(targetUserId) { mutableStateOf<Boolean?>(null) }
 
     val isSelf = targetUserId == currentUserId
 
@@ -159,6 +170,7 @@ fun ProfileScreen(
                         }
 
                         if (!isSelf) {
+                            val isBlocked = isBlockedOverride ?: user.isBlockedByCurrentUser
                             Row {
                                 IconButton(
                                     onClick = { showReportDialog = true },
@@ -168,10 +180,23 @@ fun ProfileScreen(
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 IconButton(
-                                    onClick = { showBlockDialog = true },
+                                    onClick = {
+                                        if (isBlocked) {
+                                            // إلغاء الحظر إجراء غير مدمّر — فوري بلا نافذة تأكيد،
+                                            // مع تحديث الزر فورًا (تفاؤليًا) دون انتظار الخادم.
+                                            isBlockedOverride = false
+                                            userViewModel.toggleBlock(currentUserId, targetUserId, true)
+                                        } else {
+                                            showBlockDialog = true
+                                        }
+                                    },
                                     modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.28f))
                                 ) {
-                                    Icon(Icons.Default.Block, contentDescription = "حظر", tint = TextPrimaryWhite)
+                                    Icon(
+                                        if (isBlocked) Icons.Default.CheckCircle else Icons.Default.Block,
+                                        contentDescription = if (isBlocked) "إلغاء الحظر" else "حظر",
+                                        tint = if (isBlocked) StatusOnlineGreen else TextPrimaryWhite
+                                    )
                                 }
                             }
                         } else {
@@ -334,14 +359,16 @@ fun ProfileScreen(
 
                     // أزرار التفاعل والمتابعة / إرسال رسالة
                     if (!isSelf) {
+                        val isFollowing = isFollowingOverride ?: user.isFollowedByCurrentUser
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (user.isFollowedByCurrentUser) {
+                            if (isFollowing) {
                                 GoldOutlinedButton(
                                     text = "إلغاء المتابعة ✖",
                                     onClick = {
+                                        isFollowingOverride = false
                                         userViewModel.toggleFollow(currentUserId, user.id, true)
                                     },
                                     modifier = Modifier.weight(1f),
@@ -351,6 +378,7 @@ fun ProfileScreen(
                                 GoldButton(
                                     text = "متابعة +",
                                     onClick = {
+                                        isFollowingOverride = true
                                         userViewModel.toggleFollow(currentUserId, user.id, false)
                                     },
                                     modifier = Modifier.weight(1f),
@@ -431,9 +459,10 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        userViewModel.blockUser(currentUserId, targetUserId)
+                        isBlockedOverride = true
+                        isFollowingOverride = false // الحظر يُلغي المتابعة تلقائيًا من طرف الخادم أيضًا
+                        userViewModel.toggleBlock(currentUserId, targetUserId, false)
                         showBlockDialog = false
-                        onBackClick()
                     }
                 ) {
                     Text("تأكيد الحظر", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
