@@ -45,6 +45,10 @@ class CurrencyRepositoryImpl(
         currencyService.claimDailyReward()
     }
 
+    override suspend fun claimRateAppReward(): Result<Int> = withContext(Dispatchers.IO) {
+        currencyService.claimRateAppReward()
+    }
+
     override suspend fun claimAdReward(): Result<AdRewardResult> = withContext(Dispatchers.IO) {
         currencyService.claimAdReward()
     }

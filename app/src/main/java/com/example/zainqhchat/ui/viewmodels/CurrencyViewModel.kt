@@ -76,6 +76,9 @@ class CurrencyViewModel(
     private val _dailyRewardAction = MutableStateFlow<CurrencyActionState>(CurrencyActionState.Idle)
     val dailyRewardAction: StateFlow<CurrencyActionState> = _dailyRewardAction.asStateFlow()
 
+    private val _rateAppRewardAction = MutableStateFlow<CurrencyActionState>(CurrencyActionState.Idle)
+    val rateAppRewardAction: StateFlow<CurrencyActionState> = _rateAppRewardAction.asStateFlow()
+
     private val _adRewardAction = MutableStateFlow<CurrencyActionState>(CurrencyActionState.Idle)
     val adRewardAction: StateFlow<CurrencyActionState> = _adRewardAction.asStateFlow()
 
@@ -169,6 +172,24 @@ class CurrencyViewModel(
                 }
                 .onFailure { e -> _dailyRewardAction.value = CurrencyActionState.Error(friendlyActionError(e)) }
         }
+    }
+
+    /** يُستدعى عند الضغط على "قيّم التطبيق" — يمنح 15 نقطة مرة واحدة فقط
+     *  مدى الحياة (الخادم يرفض أي محاولة ثانية). فتح صفحة المتجر نفسها
+     *  مسؤولية الواجهة (CurrencyEarnScreen)، هذه الدالة تمنح المكافأة فقط. */
+    fun claimRateAppReward() {
+        viewModelScope.launch {
+            _rateAppRewardAction.value = CurrencyActionState.Loading
+            currencyRepository.claimRateAppReward()
+                .onSuccess {
+                    _rateAppRewardAction.value = CurrencyActionState.Success("🎉 شكرًا لك! حصلت على 15 نقطة")
+                }
+                .onFailure { e -> _rateAppRewardAction.value = CurrencyActionState.Error(friendlyActionError(e)) }
+        }
+    }
+
+    fun clearRateAppRewardAction() {
+        _rateAppRewardAction.value = CurrencyActionState.Idle
     }
 
     fun claimAdReward() {

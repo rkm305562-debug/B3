@@ -1,5 +1,7 @@
 package com.example.zainqhchat.ui.screens.currency
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,12 +68,15 @@ fun CurrencyEarnScreen(
     }
 
     val dailyState by currencyViewModel.dailyRewardAction.collectAsState()
+    val rateAppState by currencyViewModel.rateAppRewardAction.collectAsState()
     val accumulatorState by currencyViewModel.accumulatorAction.collectAsState()
     val giftClaimState by currencyViewModel.giftClaimAction.collectAsState()
     val pendingAccumulator by currencyViewModel.pendingAccumulatorAmount.collectAsState()
     val receivedGiftsState by currencyViewModel.receivedGiftsState.collectAsState()
+    val context = LocalContext.current
 
     ActionToast(dailyState) { currencyViewModel.clearDailyRewardAction() }
+    ActionToast(rateAppState) { currencyViewModel.clearRateAppRewardAction() }
     ActionToast(accumulatorState) { currencyViewModel.clearAccumulatorAction() }
     ActionToast(giftClaimState) { currencyViewModel.clearGiftClaimAction() }
 
@@ -100,6 +106,33 @@ fun CurrencyEarnScreen(
                     buttonText = "استلام 🎁",
                     isLoading = dailyState is CurrencyActionState.Loading,
                     onClick = { currencyViewModel.claimDailyReward() }
+                )
+            }
+
+            item {
+                EarnRow(
+                    icon = Icons.Default.Star,
+                    title = "قم بتقييم التطبيق و اخبرنا برأيك الحقيقي",
+                    subtitle = "مكافأة لمرة واحدة فقط — 15 نقطة",
+                    buttonText = "تقييم الآن ⭐",
+                    isLoading = rateAppState is CurrencyActionState.Loading,
+                    onClick = {
+                        try {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}")).apply {
+                                    setPackage("com.android.vending")
+                                }
+                            )
+                        } catch (e: Exception) {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                                )
+                            )
+                        }
+                        currencyViewModel.claimRateAppReward()
+                    }
                 )
             }
 

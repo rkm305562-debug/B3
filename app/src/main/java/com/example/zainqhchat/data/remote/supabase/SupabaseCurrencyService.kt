@@ -30,6 +30,9 @@ interface SupabaseCurrencyService {
     suspend fun fetchWealthLeaderboard(limit: Int = 3): List<WealthLeaderboardEntry>
 
     suspend fun claimDailyReward(): Result<DailyRewardResult>
+
+    /** مكافأة تقييم التطبيق — 15 نقطة، مرة واحدة فقط لكل مستخدم مدى الحياة. */
+    suspend fun claimRateAppReward(): Result<Int>
     suspend fun claimAdReward(): Result<AdRewardResult>
     suspend fun getAccumulatorStatus(): Result<AccumulatorStatus>
     suspend fun claimAccumulatedCoins(): Result<AccumulatorClaimResult>
@@ -107,6 +110,10 @@ class SupabaseCurrencyServiceImpl(
             streak = json.getInt("streak"),
             newCoinsBalance = json.getLong("coins")
         )
+    }
+
+    override suspend fun claimRateAppReward(): Result<Int> = runCatchingRpc("claim_rate_app_reward") { json ->
+        json.getInt("points")
     }
 
     override suspend fun claimAdReward(): Result<AdRewardResult> = runCatchingRpc("claim_ad_reward") { json ->
@@ -206,6 +213,7 @@ class SupabaseCurrencyServiceImpl(
             raw.contains("insufficient_coins") -> "رصيدك من العملات غير كافٍ لإتمام هذا التبديل"
             raw.contains("invalid_amount") -> "الكمية المطلوبة غير صحيحة"
             raw.contains("daily_reward_already_claimed") -> "لقد استلمت مكافأتك اليومية بالفعل، عد لاحقًا"
+            raw.contains("rate_app_reward_already_claimed") -> "لقد استلمت مكافأة تقييم التطبيق بالفعل"
             raw.contains("ad_reward_limit_reached") -> "وصلت للحد الأقصى من مكافآت الإعلانات (3 يوميًا)، عد غدًا"
             raw.contains("accumulator_not_ready") -> "لم يمر وقت كافٍ بعد لسحب العملات المتراكمة"
             raw.contains("car_already_owned") -> "أنت تمتلك هذه السيارة بالفعل"

@@ -19,6 +19,9 @@ interface CurrencyRepository {
     suspend fun fetchWealthLeaderboard(): List<WealthLeaderboardEntry>
 
     suspend fun claimDailyReward(): Result<DailyRewardResult>
+
+    /** مكافأة تقييم التطبيق — 15 نقطة، مرة واحدة فقط لكل مستخدم مدى الحياة. */
+    suspend fun claimRateAppReward(): Result<Int>
     suspend fun claimAdReward(): Result<AdRewardResult>
     suspend fun getAccumulatorStatus(): Result<AccumulatorStatus>
     suspend fun claimAccumulatedCoins(): Result<AccumulatorClaimResult>
