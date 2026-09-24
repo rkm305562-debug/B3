@@ -25,6 +25,12 @@ interface AdminRepository {
     suspend fun broadcastNotification(title: String, body: String?): Result<Int>
     suspend fun fetchActionLog(): List<AdminActionLogEntry>
 
+    /** الأجهزة المحظورة نهائيًا من التسجيل. */
+    suspend fun fetchBannedDevices(): Result<List<com.example.zainqhchat.domain.model.BannedDevice>>
+
+    /** فك الحظر النهائي عن جهاز فيستطيع التسجيل منه مجددًا. */
+    suspend fun unbanDevice(deviceId: String): Result<Unit>
+
     /** تفعيل/تعطيل قسم من أقسام التطبيق مؤقتًا (يظهر فورًا لكل المستخدمين،
      *  بمن فيهم الزوّار غير المسجَّلين، فور تحديث الصفحة الرئيسية). */
     suspend fun setFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit>

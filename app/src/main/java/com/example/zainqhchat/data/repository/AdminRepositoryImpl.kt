@@ -93,6 +93,12 @@ class AdminRepositoryImpl(
     override suspend fun fetchActionLog(): List<AdminActionLogEntry> =
         databaseService.fetchAdminActionLog()
 
+    override suspend fun fetchBannedDevices(): Result<List<com.example.zainqhchat.domain.model.BannedDevice>> =
+        databaseService.adminFetchBannedDevices()
+
+    override suspend fun unbanDevice(deviceId: String): Result<Unit> =
+        databaseService.adminUnbanDevice(deviceId)
+
     override suspend fun setFeatureFlag(sectionKey: String, enabled: Boolean, reason: String?): Result<Unit> =
         databaseService.adminSetFeatureFlag(sectionKey, enabled, reason)
 

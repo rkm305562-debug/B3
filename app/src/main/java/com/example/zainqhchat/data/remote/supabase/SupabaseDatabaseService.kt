@@ -75,6 +75,12 @@ interface SupabaseDatabaseService {
     suspend fun adminBroadcastNotification(title: String, body: String?): Result<Int>
     suspend fun fetchAdminActionLog(limit: Int = 100): List<AdminActionLogEntry>
 
+    /** الأجهزة المحظورة نهائيًا (RPC: admin_list_banned_devices — للمدير فقط). */
+    suspend fun adminFetchBannedDevices(): Result<List<com.example.zainqhchat.domain.model.BannedDevice>>
+
+    /** فك حظر جهاز (RPC: admin_unban_device — للمدير فقط). */
+    suspend fun adminUnbanDevice(deviceId: String): Result<Unit>
+
     /** حالة كل أقسام التطبيق (مفعّل/مغلق مؤقتًا) — قراءة عامة، متاحة حتى
      *  للزوّار قبل تسجيل الدخول. */
     suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag>
@@ -588,6 +594,22 @@ class SupabaseDatabaseServiceImpl(
     } catch (e: Exception) {
         emptyList()
     }
+
+    override suspend fun adminFetchBannedDevices(): Result<List<com.example.zainqhchat.domain.model.BannedDevice>> = try {
+        val request = Request.Builder()
+            .url("$restBaseUrl/rpc/admin_list_banned_devices")
+            .headers(authHeaders().build())
+            .post(SupabaseHttp.jsonBody(JSONObject()))
+            .build()
+        val body = SupabaseHttp.execute(request)
+        val array = JSONArray(body)
+        Result.success((0 until array.length()).map { SupabaseMappers.bannedDeviceFromJson(array.getJSONObject(it)) })
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun adminUnbanDevice(deviceId: String): Result<Unit> =
+        callAdminRpc("admin_unban_device", JSONObject().put("p_device_id", deviceId))
 
     override suspend fun fetchFeatureFlags(): List<com.example.zainqhchat.domain.model.FeatureFlag> = try {
         // authHeaders() يعمل جيدًا حتى بلا جلسة (زائر) — يعود فقط بمفتاح anon

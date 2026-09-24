@@ -2,6 +2,7 @@ package com.example.zainqhchat.data.remote.supabase
 
 import com.example.zainqhchat.domain.model.AdminActionLogEntry
 import com.example.zainqhchat.domain.model.AdminActionType
+import com.example.zainqhchat.domain.model.BannedDevice
 import com.example.zainqhchat.domain.model.ChatMessage
 import com.example.zainqhchat.domain.model.CurrencyKind
 import com.example.zainqhchat.domain.model.CurrencyTransaction
@@ -117,6 +118,14 @@ internal object SupabaseMappers {
             createdAtMillis = parseTimestampMillis(json.optString("created_at", null))
         )
     }
+
+    fun bannedDeviceFromJson(json: JSONObject): BannedDevice = BannedDevice(
+        deviceId = json.optString("device_id"),
+        bannedUserId = json.optStringOrNull("banned_user_id"),
+        bannedUsername = json.optStringOrNull("banned_username"),
+        reason = json.optStringOrNull("reason"),
+        bannedAtMillis = parseTimestampMillis(json.optString("banned_at", null))
+    )
 
     private fun parseTimestampMillis(isoTimestamp: String?): Long {
         if (isoTimestamp.isNullOrBlank()) return System.currentTimeMillis()

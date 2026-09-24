@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -59,6 +61,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -107,173 +112,105 @@ fun SettingsSection(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         // 1. بطاقة الملف الشخصي وتعديله
         item {
-            LuxuryCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("edit_profile_card"),
+            SettingsProfileHero(
+                currentUser = currentUser,
                 onClick = { showEditProfileDialog = true }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    UserAvatar(
-                        name = currentUser?.name ?: "Zain",
-                        avatarUrl = currentUser?.avatarUrl,
-                        size = 58.dp,
-                        isOnline = true,
-                        tier = currentUser?.tier
-                    )
+            )
+        }
 
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = currentUser?.name ?: "مستخدم قروب بنات و شباب",
-                            color = TextPrimaryWhite,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "@${currentUser?.username ?: "username"}",
-                            color = TextSecondaryMuted,
-                            fontSize = 12.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "اضغط لتعديل الملف الشخصي ✏️",
-                            color = GoldPrimary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "تعديل",
-                        tint = GoldPrimary,
-                        modifier = Modifier.size(20.dp)
+        // 1أ + 1ب. الأمان (كلمة المرور) ثم التواصل مع المدير — مجموعة واحدة بنفس الترتيب.
+        item {
+            SettingsGroupSurface {
+                Box(modifier = Modifier.testTag("security_card")) {
+                    SettingsRowItem(
+                        icon = Icons.Default.Lock,
+                        title = "الأمان — إضافة/تغيير كلمة المرور",
+                        onClick = { showSetPasswordDialog = true },
+                        testTag = "set_password_btn",
+                        tint = Color(0xFF8B5CF6)
                     )
                 }
-            }
-        }
-
-        // 1أ. الأمان — إضافة/تغيير كلمة المرور
-        item {
-            LuxuryCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("security_card"),
-                onClick = { showSetPasswordDialog = true }
-            ) {
-                SettingsRowItem(
-                    icon = Icons.Default.Lock,
-                    title = "الأمان — إضافة/تغيير كلمة المرور",
-                    onClick = { showSetPasswordDialog = true },
-                    testTag = "set_password_btn"
-                )
-            }
-        }
-
-        // 1ب. تواصل مع المدير — محادثة مباشرة، متاحة لأي مستخدم من هنا.
-        item {
-            LuxuryCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("contact_admin_card"),
-                onClick = onContactAdmin
-            ) {
-                SettingsRowItem(
-                    icon = Icons.Default.SupportAgent,
-                    title = "تواصل مع المدير 💬",
-                    onClick = onContactAdmin,
-                    testTag = "contact_admin_btn"
-                )
+                SettingsRowDivider()
+                Box(modifier = Modifier.testTag("contact_admin_card")) {
+                    SettingsRowItem(
+                        icon = Icons.Default.SupportAgent,
+                        title = "تواصل مع المدير 💬",
+                        onClick = onContactAdmin,
+                        testTag = "contact_admin_btn",
+                        tint = Color(0xFF22C55E)
+                    )
+                }
             }
         }
 
         // 2. إعدادات المظهر والوضع الداكن/الفاتح
         item {
-            Text(
-                text = "المظهر والألوان 🎨",
-                color = GoldPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            LuxuryCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // الوضع الداكن
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.DarkMode, contentDescription = null, tint = GoldPrimary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("الوضع الداكن الفاخر", color = TextPrimaryWhite, fontSize = 15.sp)
-                        }
-                        Switch(
-                            checked = settingsState.isDarkMode,
-                            onCheckedChange = { settingsViewModel.toggleDarkMode(it) },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = LuxuryBlackBg,
-                                checkedTrackColor = GoldPrimary
-                            ),
-                            modifier = Modifier.testTag("dark_mode_switch")
-                        )
-                    }
+            Column {
+            SettingsGroupLabel("المظهر والألوان 🎨")
+            SettingsGroupSurface {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SettingsIconTile(icon = Icons.Default.DarkMode, tint = Color(0xFF6366F1))
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Text(
+                        "الوضع الداكن الفاخر",
+                        color = TextPrimaryWhite,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = settingsState.isDarkMode,
+                        onCheckedChange = { settingsViewModel.toggleDarkMode(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = GoldPrimary
+                        ),
+                        modifier = Modifier.testTag("dark_mode_switch")
+                    )
                 }
+            }
             }
         }
 
         // 3. المعلومات وسياسة الخصوصية
         item {
-            Text(
-                text = "المعلومات والسياسات 📜",
-                color = GoldPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            LuxuryCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    SettingsRowItem(
-                        icon = Icons.Default.PrivacyTip,
-                        title = "سياسة الخصوصية",
-                        onClick = { showPrivacyPolicyDialog = true },
-                        testTag = "privacy_policy_btn"
-                    )
-
-                    Divider(color = LuxuryBorderGold.copy(alpha = 0.3f))
-
-                    SettingsRowItem(
-                        icon = Icons.Default.Description,
-                        title = "الشروط والأحكام",
-                        onClick = { showTermsDialog = true },
-                        testTag = "terms_conditions_btn"
-                    )
-
-                    Divider(color = LuxuryBorderGold.copy(alpha = 0.3f))
-
-                    SettingsRowItem(
-                        icon = Icons.Default.Info,
-                        title = "عن تطبيق قروب بنات و شباب",
-                        onClick = { showAboutDialog = true },
-                        testTag = "about_app_btn"
-                    )
-                }
+            Column {
+            SettingsGroupLabel("المعلومات والسياسات 📜")
+            SettingsGroupSurface {
+                SettingsRowItem(
+                    icon = Icons.Default.PrivacyTip,
+                    title = "سياسة الخصوصية",
+                    onClick = { showPrivacyPolicyDialog = true },
+                    testTag = "privacy_policy_btn",
+                    tint = Color(0xFF0EA5E9)
+                )
+                SettingsRowDivider()
+                SettingsRowItem(
+                    icon = Icons.Default.Description,
+                    title = "الشروط والأحكام",
+                    onClick = { showTermsDialog = true },
+                    testTag = "terms_conditions_btn",
+                    tint = Color(0xFFF59E0B)
+                )
+                SettingsRowDivider()
+                SettingsRowItem(
+                    icon = Icons.Default.Info,
+                    title = "عن تطبيق قروب بنات و شباب",
+                    onClick = { showAboutDialog = true },
+                    testTag = "about_app_btn",
+                    tint = Color(0xFF14B8A6)
+                )
+            }
             }
         }
 
@@ -283,29 +220,39 @@ fun SettingsSection(
         // بغض النظر عن ظهور هذا الزر أو عدمه.
         if (currentUser?.isAdmin == true) {
             item {
-                Spacer(modifier = Modifier.height(4.dp))
-                LuxuryCard(
-                    modifier = Modifier.fillMaxWidth().testTag("open_admin_btn"),
-                    onClick = onOpenAdmin
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(GoldPrimary.copy(alpha = 0.10f))
+                        .border(1.dp, GoldPrimary.copy(alpha = 0.55f), RoundedCornerShape(22.dp))
+                        .clickable(onClick = onOpenAdmin)
+                        .testTag("open_admin_btn")
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(GoldPrimary.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text("🛡️", fontSize = 22.sp)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("لوحة الإدارة", color = GoldPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Text("إدارة المستخدمين ومراقبة الدردشة العامة", color = TextSecondaryMuted, fontSize = 11.sp)
-                        }
                     }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("لوحة الإدارة", color = GoldPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("إدارة المستخدمين ومراقبة الدردشة العامة", color = TextSecondaryMuted, fontSize = 11.sp)
+                    }
+                    Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = GoldPrimary)
                 }
             }
         }
 
         // 4. تسجيل الخروج
         item {
-            Spacer(modifier = Modifier.height(8.dp))
             GoldButton(
                 text = "تسجيل الخروج 🚪",
                 onClick = onLogout,
@@ -315,24 +262,41 @@ fun SettingsSection(
 
         // 5. حذف الحساب نهائيًا (إجراء مدمِّر — منفصل بوضوح عن تسجيل الخروج)
         item {
-            Spacer(modifier = Modifier.height(20.dp))
-            Divider(color = LuxuryBorderGold.copy(alpha = 0.3f))
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "منطقة الخطر",
-                color = Color(0xFFFF5252),
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = { showDeleteAccountDialog = true },
-                border = BorderStroke(1.dp, Color(0xFFFF5252)),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5252)),
-                modifier = Modifier.fillMaxWidth().height(52.dp).testTag("delete_account_btn")
+            val danger = Color(0xFFFF5252)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(danger.copy(alpha = 0.07f))
+                    .border(1.dp, danger.copy(alpha = 0.35f), RoundedCornerShape(22.dp))
+                    .padding(16.dp)
             ) {
-                Text("حذف الحساب نهائيًا 🗑️", fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = danger, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "منطقة الخطر",
+                        color = danger,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "حذف الحساب إجراء نهائي ولا يمكن التراجع عنه.",
+                    color = TextSecondaryMuted,
+                    fontSize = 11.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = { showDeleteAccountDialog = true },
+                    border = BorderStroke(1.dp, danger),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = danger),
+                    modifier = Modifier.fillMaxWidth().height(52.dp).testTag("delete_account_btn")
+                ) {
+                    Text("حذف الحساب نهائيًا 🗑️", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -430,26 +394,169 @@ fun SettingsSection(
 }
 
 @Composable
+private fun SettingsProfileHero(currentUser: User?, onClick: () -> Unit) {
+    val heroShape = RoundedCornerShape(28.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(heroShape)
+            .background(
+                Brush.linearGradient(listOf(Color(0xFF0369A1), Color(0xFF0EA5E9)))
+            )
+            .drawBehind {
+                // زخارف دائرية شفافة خلف المحتوى
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.08f),
+                    radius = 75.dp.toPx(),
+                    center = Offset(x = size.width * 0.12f, y = 0f)
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.08f),
+                    radius = 55.dp.toPx(),
+                    center = Offset(x = size.width * 0.92f, y = size.height)
+                )
+            }
+            .clickable(onClick = onClick)
+            .testTag("edit_profile_card")
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            UserAvatar(
+                name = currentUser?.name ?: "Zain",
+                avatarUrl = currentUser?.avatarUrl,
+                size = 68.dp,
+                isOnline = true,
+                tier = currentUser?.tier
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = currentUser?.name ?: "مستخدم قروب بنات و شباب",
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "@${currentUser?.username ?: "username"}",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White.copy(alpha = 0.2f))
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "تعديل",
+                        tint = Color.White,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(
+                        text = "اضغط لتعديل الملف الشخصي ✏️",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsGroupLabel(text: String) {
+    Row(
+        modifier = Modifier.padding(start = 4.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(16.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(GoldPrimary)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            color = TextPrimaryWhite,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        )
+    }
+}
+
+@Composable
+private fun SettingsGroupSurface(content: @Composable ColumnScope.() -> Unit) {
+    val shape = RoundedCornerShape(22.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(LuxurySurfaceCard)
+            .border(1.dp, LuxuryBorderGold, shape),
+        content = content
+    )
+}
+
+@Composable
+private fun SettingsIconTile(icon: ImageVector, tint: Color) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(tint.copy(alpha = 0.15f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+    }
+}
+
+@Composable
+private fun SettingsRowDivider() {
+    Divider(
+        modifier = Modifier.padding(start = 68.dp),
+        color = LuxuryBorderGold.copy(alpha = 0.6f)
+    )
+}
+
+@Composable
 fun SettingsRowItem(
     icon: ImageVector,
     title: String,
     onClick: () -> Unit,
-    testTag: String
+    testTag: String,
+    tint: Color = GoldPrimary
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
             .testTag(testTag),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(imageVector = icon, contentDescription = null, tint = GoldPrimary)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(text = title, color = TextPrimaryWhite, fontSize = 15.sp)
-        }
+        SettingsIconTile(icon = icon, tint = tint)
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(
+            text = title,
+            color = TextPrimaryWhite,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
         Icon(imageVector = Icons.Default.ChevronLeft, contentDescription = null, tint = TextSecondaryMuted)
     }
 }

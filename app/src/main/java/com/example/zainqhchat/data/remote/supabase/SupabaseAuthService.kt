@@ -41,6 +41,13 @@ interface SupabaseAuthService {
      */
     suspend fun updatePassword(newPassword: String): Result<Unit>
 
+    /**
+     * يربط معرّف الجهاز الحالي بحساب المستخدم المسجَّل دخوله (RPC: register_my_device)
+     * كي يعمل حظر الجهاز حتى للحسابات القديمة أو التي أُنشئ ملفها احتياطيًا
+     * بدون device_id. فشله لا يجب أن يمنع أي شيء آخر.
+     */
+    suspend fun registerDevice(): Result<Unit>
+
     /** يعيد Access Token صالحًا (ويجدده تلقائيًا عبر refresh_token عند الحاجة) أو null إن لم توجد جلسة. */
     suspend fun currentValidAccessToken(): String?
 
@@ -63,16 +70,38 @@ class SupabaseAuthServiceImpl(context: Context) : SupabaseAuthService {
      * فقط لمنع جهاز محظور دائمًا من التسجيل بحساب جديد — انظر
      * supabase/migrations/007_permanent_ban_deletes_and_blocks_device.sql.
      */
-    private fun getDeviceId(): String =
-        Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
-            ?: "unknown"
+    private fun getDeviceId(): String? {
+        val id = Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
+            ?.trim()
+            .orEmpty()
+        // قيم غير صالحة/مشتركة بين أجهزة كثيرة (لا نحظرها أبدًا كي لا نحظر أبرياء).
+        val invalid = id.isEmpty() || id.equals("unknown", true) || id == "9774d56d682e549c"
+        return if (invalid) null else id
+    }
+
+    override suspend fun registerDevice(): Result<Unit> {
+        val deviceId = getDeviceId() ?: return Result.success(Unit)
+        return try {
+            val token = currentValidAccessToken() ?: return Result.success(Unit)
+            val request = Request.Builder()
+                .url("${SupabaseConfig.getSupabaseUrl()}/rest/v1/rpc/register_my_device")
+                .headers(SupabaseHttp.baseHeaders(token).build())
+                .post(SupabaseHttp.jsonBody(JSONObject().put("p_device_id", deviceId)))
+                .build()
+            SupabaseHttp.execute(request)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     /**
      * يتحقق من القائمة السوداء (banned_devices) قبل محاولة التسجيل فعليًا،
      * كي تظهر رسالة واضحة فورًا بدل خطأ عام غامض من Supabase Auth. يُستدعى
      * بمفتاح anon (لا توجد جلسة بعد وقت التسجيل).
      */
-    private suspend fun isDeviceBanned(deviceId: String): Boolean {
+    private suspend fun isDeviceBanned(deviceId: String?): Boolean {
+        if (deviceId == null) return false
         return try {
             val body = JSONObject().put("p_device_id", deviceId)
             val request = Request.Builder()
@@ -107,7 +136,7 @@ class SupabaseAuthServiceImpl(context: Context) : SupabaseAuthService {
                 .put("username", username)
                 .put("name", name)
                 .put("age", age)
-                .put("device_id", deviceId)
+            if (deviceId != null) metadata.put("device_id", deviceId)
 
             val body = JSONObject()
                 .put("email", email)

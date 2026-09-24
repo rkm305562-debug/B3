@@ -31,6 +31,9 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
     private val _actionLog = MutableStateFlow<List<AdminActionLogEntry>>(emptyList())
     val actionLog: StateFlow<List<AdminActionLogEntry>> = _actionLog
 
+    private val _bannedDevices = MutableStateFlow<List<com.example.zainqhchat.domain.model.BannedDevice>>(emptyList())
+    val bannedDevices: StateFlow<List<com.example.zainqhchat.domain.model.BannedDevice>> = _bannedDevices
+
     private val _statusMessage = MutableStateFlow<String?>(null)
     val statusMessage: StateFlow<String?> = _statusMessage
 
@@ -88,12 +91,35 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
         }
     }
 
+    fun loadBannedDevices(showError: Boolean = true) {
+        viewModelScope.launch {
+            adminRepository.fetchBannedDevices()
+                .onSuccess { _bannedDevices.value = it }
+                .onFailure {
+                    if (showError) _statusMessage.value = "تعذّر جلب الأجهزة المحظورة — تأكد من تشغيل migration 011 في Supabase"
+                }
+        }
+    }
+
+    fun unbanDevice(deviceId: String) {
+        viewModelScope.launch {
+            adminRepository.unbanDevice(deviceId)
+                .onSuccess {
+                    _statusMessage.value = "تم فك الحظر عن الجهاز، ويمكنه التسجيل مجددًا"
+                    loadBannedDevices()
+                    loadActionLog()
+                }
+                .onFailure { _statusMessage.value = it.message ?: "فشل فك حظر الجهاز" }
+        }
+    }
+
     fun setBanStatus(targetUserId: String, banned: Boolean, reason: String?) {
         viewModelScope.launch {
             adminRepository.setUserBanStatus(targetUserId, banned, reason)
                 .onSuccess {
-                    _statusMessage.value = if (banned) "تم حظر المستخدم" else "تم فك الحظر عن المستخدم"
+                    _statusMessage.value = if (banned) "تم حظر المستخدم وحذف حسابه نهائيًا ومنع جهازه من التسجيل" else "تم فك الحظر عن المستخدم"
                     searchUsers(null)
+                    loadBannedDevices(showError = false)
                 }
                 .onFailure { _statusMessage.value = it.message ?: "فشلت العملية" }
         }

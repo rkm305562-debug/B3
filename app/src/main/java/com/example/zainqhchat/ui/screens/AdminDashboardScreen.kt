@@ -1,5 +1,6 @@
 package com.example.zainqhchat.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,7 +28,11 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PersonOff
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -35,15 +43,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,7 +56,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -75,43 +82,63 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private data class AdminSection(
+    val id: Int,
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector
+)
+
+private val adminSections = listOf(
+    AdminSection(0, "الدردشة العامة", "مراقبة الرسائل وحذفها", Icons.Default.Forum),
+    AdminSection(1, "المستخدمون", "إدارة الحسابات والحظر", Icons.Default.People),
+    AdminSection(5, "الأجهزة المحظورة", "عرض الحظر النهائي وفكّه", Icons.Default.Block),
+    AdminSection(2, "سجل الإجراءات", "كل ما نفّذه المدراء", Icons.Default.History),
+    AdminSection(3, "بث إشعار", "إشعار لكل المستخدمين", Icons.Default.Notifications),
+    AdminSection(4, "الأقسام", "إغلاق الأقسام مؤقتًا", Icons.Default.Settings)
+)
+
 @Composable
 fun AdminDashboardScreen(
     adminViewModel: AdminViewModel,
     onOpenProfile: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    // null = قائمة البطاقات الرئيسية، وإلا رقم القسم المفتوح حاليًا.
+    var selectedTab by remember { mutableStateOf<Int?>(null) }
     val statusMessage by adminViewModel.statusMessage.collectAsState()
+    val openSection = adminSections.firstOrNull { it.id == selectedTab }
 
     LaunchedEffect(Unit) {
         adminViewModel.searchUsers(null)
         adminViewModel.loadActionLog()
     }
 
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 5) adminViewModel.loadBannedDevices()
+    }
+
+    BackHandler(enabled = selectedTab != null) { selectedTab = null }
+
     Scaffold(
         topBar = {
-            Column {
-                Surface(color = LuxurySurfaceDark, shadowElevation = 2.dp) {
-                    Row(
-                        modifier = Modifier
-                            .statusBarsPadding()
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع", tint = TextPrimaryWhite)
-                        }
-                        Text("لوحة الإدارة 🛡️", color = TextPrimaryWhite, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Surface(color = LuxurySurfaceDark, shadowElevation = 2.dp) {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { if (selectedTab != null) selectedTab = null else onBackClick() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع", tint = TextPrimaryWhite)
                     }
-                }
-                TabRow(selectedTabIndex = selectedTab, containerColor = LuxurySurfaceDark, contentColor = GoldPrimary) {
-                    Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("الدردشة العامة") })
-                    Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("المستخدمون") })
-                    Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("سجل الإجراءات") })
-                    Tab(selected = selectedTab == 3, onClick = { selectedTab = 3 }, text = { Text("بث إشعار") })
-                    Tab(selected = selectedTab == 4, onClick = { selectedTab = 4 }, text = { Text("الأقسام") })
+                    Text(
+                        openSection?.title ?: "لوحة الإدارة 🛡️",
+                        color = TextPrimaryWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 }
             }
         },
@@ -119,11 +146,13 @@ fun AdminDashboardScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
+                null -> AdminSectionsGrid(onSelect = { selectedTab = it })
                 0 -> AdminModerationTab(adminViewModel, onOpenProfile)
                 1 -> AdminUsersTab(adminViewModel, onOpenProfile)
                 2 -> AdminActionLogTab(adminViewModel)
                 3 -> AdminBroadcastTab(adminViewModel)
                 4 -> AdminFeatureFlagsTab(adminViewModel)
+                5 -> AdminBannedDevicesTab(adminViewModel)
             }
         }
     }
@@ -138,6 +167,121 @@ fun AdminDashboardScreen(
                 TextButton(onClick = { adminViewModel.clearStatusMessage() }) {
                     Text("حسنًا", color = GoldPrimary)
                 }
+            }
+        )
+    }
+}
+
+@Composable
+private fun AdminSectionsGrid(onSelect: (Int) -> Unit) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        gridItems(adminSections, key = { it.id }) { section ->
+            LuxuryCard(
+                modifier = Modifier.fillMaxWidth().height(150.dp),
+                onClick = { onSelect(section.id) }
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(section.icon, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(38.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        section.title,
+                        color = TextPrimaryWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        section.subtitle,
+                        color = TextSecondaryMuted,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdminBannedDevicesTab(adminViewModel: AdminViewModel) {
+    val devices by adminViewModel.bannedDevices.collectAsState()
+    val timeFormatter = SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale("ar"))
+    var unbanTarget by remember { mutableStateOf<com.example.zainqhchat.domain.model.BannedDevice?>(null) }
+
+    if (devices.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Text("لا توجد أجهزة محظورة نهائيًا", color = TextSecondaryMuted, fontSize = 14.sp, textAlign = TextAlign.Center)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(devices, key = { it.deviceId }) { device ->
+                LuxuryCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Block, contentDescription = null, tint = StatusErrorRed, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                device.bannedUsername?.let { "@$it" } ?: "مستخدم محذوف",
+                                color = TextPrimaryWhite,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                        }
+                        val id = device.deviceId
+                        val shortId = if (id.length > 10) id.take(6) + "…" + id.takeLast(4) else id
+                        Text("معرّف الجهاز: $shortId", color = TextSecondaryMuted, fontSize = 12.sp)
+                        if (!device.reason.isNullOrBlank()) {
+                            Text("السبب: ${device.reason}", color = TextSecondaryMuted, fontSize = 12.sp)
+                        }
+                        Text(timeFormatter.format(Date(device.bannedAtMillis)), color = TextSecondaryMuted, fontSize = 11.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { unbanTarget = device }) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = StatusOnlineGreen, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("فك الحظر النهائي", color = StatusOnlineGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val target = unbanTarget
+    if (target != null) {
+        AlertDialog(
+            onDismissRequest = { unbanTarget = null },
+            containerColor = LuxurySurfaceDark,
+            title = { Text("فك الحظر النهائي", color = GoldPrimary) },
+            text = {
+                Text(
+                    "سيتمكن هذا الجهاز من إنشاء حساب جديد مجددًا. لا يمكن استعادة الحساب المحذوف.",
+                    color = TextPrimaryWhite
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    adminViewModel.unbanDevice(target.deviceId)
+                    unbanTarget = null
+                }) { Text("فك الحظر", color = StatusOnlineGreen) }
+            },
+            dismissButton = {
+                TextButton(onClick = { unbanTarget = null }) { Text("إلغاء", color = TextSecondaryMuted) }
             }
         )
     }
@@ -245,7 +389,6 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
     var pointsTarget by remember { mutableStateOf<User?>(null) }
     var avatarRemovalTarget by remember { mutableStateOf<User?>(null) }
     var tempBanTarget by remember { mutableStateOf<User?>(null) }
-    var deleteUserTarget by remember { mutableStateOf<User?>(null) }
     var banUserTarget by remember { mutableStateOf<User?>(null) }
     var currencyTarget by remember { mutableStateOf<User?>(null) }
 
@@ -309,7 +452,7 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("حظر دائم", color = StatusErrorRed, fontSize = 12.sp)
+                                Text("حظر وحذف نهائي", color = StatusErrorRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                             TextButton(onClick = {
                                 if (user.isBanned) {
@@ -339,11 +482,6 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text("إزالة الصورة", color = StatusErrorRed, fontSize = 12.sp)
                                 }
-                            }
-                            TextButton(onClick = { deleteUserTarget = user }) {
-                                Icon(Icons.Default.DeleteForever, contentDescription = null, tint = StatusErrorRed, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("حذف نهائي", color = StatusErrorRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -480,33 +618,6 @@ private fun AdminUsersTab(adminViewModel: AdminViewModel, onOpenProfile: (String
             },
             dismissButton = {
                 TextButton(onClick = { tempBanTarget = null }) { Text("إلغاء", color = TextSecondaryMuted) }
-            }
-        )
-    }
-
-    val delTarget = deleteUserTarget
-    if (delTarget != null) {
-        AlertDialog(
-            onDismissRequest = { deleteUserTarget = null },
-            containerColor = LuxurySurfaceDark,
-            title = { Text("حذف ${delTarget.name} نهائيًا؟", color = StatusErrorRed, fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    "سيُحذف الحساب وكل بياناته (رسائل، متابعات، عملات، سيارات) نهائيًا ولا يمكن التراجع عن هذا الإجراء.",
-                    color = TextSecondaryMuted,
-                    fontSize = 13.sp
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    adminViewModel.deleteUser(delTarget.id, null)
-                    deleteUserTarget = null
-                }) {
-                    Text("حذف نهائيًا", color = StatusErrorRed, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteUserTarget = null }) { Text("إلغاء", color = TextSecondaryMuted) }
             }
         )
     }

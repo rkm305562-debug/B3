@@ -57,6 +57,7 @@ class AuthRepositoryImpl(
         if (user != null) {
             localUserCache.upsert(user)
             markOnline(user.id)
+            runCatching { authService.registerDevice() }
         }
         _currentUserState.value = user
         user
@@ -146,6 +147,7 @@ class AuthRepositoryImpl(
         val finalUser = if (avatarUrl != null) createdUser.copy(avatarUrl = avatarUrl) else createdUser
         localUserCache.upsert(finalUser)
         markOnline(finalUser.id)
+        runCatching { authService.registerDevice() }
         _currentUserState.value = finalUser
         Result.success(finalUser)
     }
@@ -163,6 +165,7 @@ class AuthRepositoryImpl(
 
             localUserCache.upsert(user)
             markOnline(user.id)
+            runCatching { authService.registerDevice() }
             _currentUserState.value = user
             Result.success(user)
         }
