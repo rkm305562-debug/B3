@@ -76,10 +76,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // حماية من التقاط الشاشة: يمنع لقطات الشاشة وتسجيل الشاشة لكامل
-        // التطبيق (بما فيها الرسائل الخاصة والمحادثات)، ويمنع أيضًا ظهور
-        // معاينة للتطبيق في قائمة "التطبيقات الأخيرة" (Recents) في أندرويد —
-        // حماية قياسية لتطبيقات الدردشة الخاصة.
+        // حماية من التقاط الشاشة: تمنع لقطات الشاشة وتسجيل الشاشة ومعاينة
+        // التطبيق في "التطبيقات الأخيرة" (Recents) — لأن التطبيق يعرض رسائل
+        // خاصة وصورًا شخصية. الافتراضي هنا هو الحماية الكاملة قبل معرفة
+        // هوية المستخدم؛ بعد تسجيل الدخول يُسمح للمدير فقط بالتصوير
+        // (راجع LaunchedEffect(currentUserState?.isAdmin) في ZainQHChatNavHost
+        // أدناه، وهو ما يضبط هذا العلم فعليًا طوال عمر الشاشة).
         window.setFlags(
             android.view.WindowManager.LayoutParams.FLAG_SECURE,
             android.view.WindowManager.LayoutParams.FLAG_SECURE
@@ -244,6 +246,23 @@ fun ZainQHChatNavHost(
     val currentUserState by authViewModel.currentUser.collectAsState(initial = null)
     val connectionState by networkMonitor.observe()
         .collectAsState(initial = ConnectionState.CONNECTED)
+
+    // التقاط الشاشة: محظور افتراضيًا لحماية الرسائل الخاصة والصور، ويُسمح به
+    // فقط للمدير (مثلًا لتوثيق مخالفة أثناء الإشراف). onCreate يضبط الحماية
+    // الكاملة كافتراضي أولي قبل معرفة هوية المستخدم؛ هذا الأثر هو ما يحكم
+    // العلم فعليًا بعد ذلك طوال وجود الشاشة.
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    LaunchedEffect(currentUserState?.isAdmin) {
+        val window = activity?.window ?: return@LaunchedEffect
+        if (currentUserState?.isAdmin == true) {
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+            )
+        }
+    }
 
     // نافذة التسجيل/الدخول المنبثقة — تُفتح فقط عند محاولة "زائر" الدخول إلى
     // قسم يتطلب حسابًا (عبر requireAuth أدناه)، وليس تلقائيًا عند بدء التطبيق.
